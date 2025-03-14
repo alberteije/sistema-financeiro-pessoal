@@ -1,0 +1,9 @@
+export 'login_bindings.dart';
+export 'conta_despesa_bindings.dart';
+export 'lancamento_despesa_bindings.dart';
+export 'resumo_bindings.dart';
+export 'extrato_bancario_bindings.dart';
+export 'metodo_pagamento_bindings.dart';
+export 'conta_receita_bindings.dart';
+export 'lancamento_receita_bindings.dart';
+export 'usuario_bindings.dart';
