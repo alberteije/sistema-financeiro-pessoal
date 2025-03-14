@@ -8,6 +8,10 @@ class Filter {
   String? condition;
   String? where; // will be used when the Filter is multiple, that is, when more than one Filter is sent to the server
 
+  // to be used to filter dates to local database
+  DateTime? dateIni;
+  DateTime? dateEnd;
+
   Filter({this.field, this.value, this.initialDate, this.finalDate, this.condition, this.where});
 
   Filter.fromJson(Map<String, dynamic> jsonData) {

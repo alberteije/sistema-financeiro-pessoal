@@ -11,11 +11,7 @@ class LancamentoDespesaDriftProvider extends ProviderBase {
 		List<LancamentoDespesaGrouped> lancamentoDespesaDriftList = [];
 
 		try {
-			if (filter != null && filter.field != null) {
-				lancamentoDespesaDriftList = await Session.database.lancamentoDespesaDao.getGroupedList(field: filter.field, value: filter.value!);
-			} else {
-				lancamentoDespesaDriftList = await Session.database.lancamentoDespesaDao.getGroupedList(); 
-			}
+      lancamentoDespesaDriftList = await Session.database.lancamentoDespesaDao.getGroupedList(filter: filter!);
 			if (lancamentoDespesaDriftList.isNotEmpty) {
 				return toListModel(lancamentoDespesaDriftList);
 			} else {
@@ -68,6 +64,15 @@ class LancamentoDespesaDriftProvider extends ProviderBase {
 		return null;
 	}	
 
+  Future transferDataFromOtherMonth(String selectedDate, String targetDate) async {
+    try {
+      await Session.database.lancamentoDespesaDao.transferDataFromOtherMonth(selectedDate, targetDate);
+      return true;
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+  
 	List<LancamentoDespesaModel> toListModel(List<LancamentoDespesaGrouped> lancamentoDespesaDriftList) {
 		List<LancamentoDespesaModel> listModel = [];
 		for (var lancamentoDespesaDrift in lancamentoDespesaDriftList) {

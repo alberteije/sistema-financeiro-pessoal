@@ -160,13 +160,8 @@ class Util {
     final int month = int.parse(parts[0]); // Mês
     final int year = int.parse(parts[1]);  // Ano
 
-    final DateTime startDate = DateTime(year, month, 1);
-    final DateTime endDate = DateTime(year, month + 1, 1).subtract(const Duration(days: 1));
-
-    final DateFormat formatter = DateFormat('yyyy-MM-dd');
-
-    filter.initialDate = formatter.format(startDate);
-    filter.finalDate = formatter.format(endDate);
+    filter.dateIni = DateTime(year, month, 1);
+    filter.dateEnd = DateTime(year, month + 1, 1).subtract(const Duration(days: 1));
 
     return filter;
   }

@@ -1,3 +1,4 @@
+import 'package:financeiro_pessoal/app/page/shared_widget/input/month_year_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -15,6 +16,12 @@ class LancamentoDespesaListPage extends GetView<LancamentoDespesaController> {
 				automaticallyImplyLeading: false,
 				title: const Text('Lançamento de Despesa'),
 				actions: [
+          IconButton(
+            tooltip: 'Importar Lançamentos',
+            icon: const Icon(Icons.sim_card_download_outlined),
+            color: Colors.lime,
+            onPressed: controller.showImportDataDialog,
+          ),
           IconButton(
             tooltip: 'Exportar para Excel',
             icon: const Icon(Icons.dataset_outlined),
@@ -42,7 +49,13 @@ class LancamentoDespesaListPage extends GetView<LancamentoDespesaController> {
 				shape: const CircularNotchedRectangle(),
 				child: Row(children: [
 					printButton(onPressed: controller.printReport),
-					filterButton(onPressed: controller.callFilter)
+					filterButton(onPressed: controller.callFilter),
+          MonthYearPicker(
+            onChanged: (month, year) async {
+              controller.mesAno = "$month/$year";
+              await controller.loadData();
+            },
+          ),
 				]),
 			),
 			body: Padding(

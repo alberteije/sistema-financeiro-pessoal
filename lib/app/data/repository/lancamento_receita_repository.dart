@@ -10,12 +10,16 @@ class LancamentoReceitaRepository {
 		return await lancamentoReceitaDriftProvider.getList(filter: filter);
   }
 
+  Future transferDataFromOtherMonth(String selectedDate, String targetDate) async {
+    await lancamentoReceitaDriftProvider.transferDataFromOtherMonth(selectedDate, targetDate);
+  }
+
   Future<LancamentoReceitaModel?>? save({required LancamentoReceitaModel lancamentoReceitaModel}) async {
     if (lancamentoReceitaModel.id! > 0) {
 			return await lancamentoReceitaDriftProvider.update(lancamentoReceitaModel);
     } else {
 			return await lancamentoReceitaDriftProvider.insert(lancamentoReceitaModel);
-    }   
+    }
   }
 
   Future<bool> delete({required int id}) async {

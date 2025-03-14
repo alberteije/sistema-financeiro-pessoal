@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:financeiro_pessoal/app/page/shared_widget/shared_widget_imports.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -15,7 +16,6 @@ import 'package:financeiro_pessoal/app/page/grid_columns/grid_columns_imports.da
 import 'package:financeiro_pessoal/app/routes/app_routes.dart';
 import 'package:financeiro_pessoal/app/data/repository/lancamento_receita_repository.dart';
 import 'package:financeiro_pessoal/app/page/shared_page/shared_page_imports.dart';
-import 'package:financeiro_pessoal/app/page/shared_widget/message_dialog.dart';
 import 'package:financeiro_pessoal/app/mixin/controller_base_mixin.dart';
 
 class LancamentoReceitaController extends GetxController with ControllerBaseMixin {
@@ -44,6 +44,10 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
   var _isInserting = false;
 
   String mesAno = "";
+
+  double aReceber = 100;
+  double recebido = 200;
+  double total = 300;
 
   // list page
   late StreamSubscription _keyboardListener;
@@ -190,6 +194,18 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
 
   Future exportToCSV() async {
     await Util.exportToCSV(plutoGridStateManager.rows, plutoGridStateManager.columns, 'lancamentos_de_receita');
+  }
+
+  void showImportDataDialog() {
+    Get.dialog(
+      MonthYearPickerDialog(
+        onConfirm: (selectedDate) async {
+          await lancamentoReceitaRepository.transferDataFromOtherMonth(selectedDate, mesAno).then((data) async {
+            await loadData();
+          });
+        },
+      ),
+    );
   }
 
   // edit page

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:financeiro_pessoal/app/page/shared_widget/shared_widget_imports.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -15,7 +16,6 @@ import 'package:financeiro_pessoal/app/page/grid_columns/grid_columns_imports.da
 import 'package:financeiro_pessoal/app/routes/app_routes.dart';
 import 'package:financeiro_pessoal/app/data/repository/lancamento_despesa_repository.dart';
 import 'package:financeiro_pessoal/app/page/shared_page/shared_page_imports.dart';
-import 'package:financeiro_pessoal/app/page/shared_widget/message_dialog.dart';
 import 'package:financeiro_pessoal/app/mixin/controller_base_mixin.dart';
 
 class LancamentoDespesaController extends GetxController with ControllerBaseMixin {
@@ -30,7 +30,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
   get aliasColumns => _aliasColumns;
 
   final gridColumns = lancamentoDespesaGridColumns();
-  
+
   var _lancamentoDespesaModelList = <LancamentoDespesaModel>[];
 
   final _lancamentoDespesaModel = LancamentoDespesaModel().obs;
@@ -39,9 +39,11 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
 
   final _filter = Filter().obs;
   Filter get filter => _filter.value;
-  set filter(value) => _filter.value = value ?? Filter(); 
+  set filter(value) => _filter.value = value ?? Filter();
 
   var _isInserting = false;
+
+  String mesAno = "";
 
   // list page
   late StreamSubscription _keyboardListener;
@@ -70,22 +72,22 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     );
   }
 
-  Map<String, PlutoCell> _getPlutoCells({ LancamentoDespesaModel? lancamentoDespesaModel}) {
+  Map<String, PlutoCell> _getPlutoCells({LancamentoDespesaModel? lancamentoDespesaModel}) {
     return {
-			"id": PlutoCell(value: lancamentoDespesaModel?.id ?? 0),
-			"contaDespesa": PlutoCell(value: lancamentoDespesaModel?.contaDespesaModel?.descricao ?? ''),
-			"metodoPagamento": PlutoCell(value: lancamentoDespesaModel?.metodoPagamentoModel?.descricao ?? ''),
-			"dataDespesa": PlutoCell(value: lancamentoDespesaModel?.dataDespesa ?? ''),
-			"valor": PlutoCell(value: lancamentoDespesaModel?.valor ?? 0),
-			"statusDespesa": PlutoCell(value: lancamentoDespesaModel?.statusDespesa ?? ''),
-			"historico": PlutoCell(value: lancamentoDespesaModel?.historico ?? ''),
-			"idContaDespesa": PlutoCell(value: lancamentoDespesaModel?.idContaDespesa ?? 0),
-			"idMetodoPagamento": PlutoCell(value: lancamentoDespesaModel?.idMetodoPagamento ?? 0),
+      "id": PlutoCell(value: lancamentoDespesaModel?.id ?? 0),
+      "contaDespesa": PlutoCell(value: lancamentoDespesaModel?.contaDespesaModel?.descricao ?? ''),
+      "metodoPagamento": PlutoCell(value: lancamentoDespesaModel?.metodoPagamentoModel?.descricao ?? ''),
+      "dataDespesa": PlutoCell(value: lancamentoDespesaModel?.dataDespesa ?? ''),
+      "valor": PlutoCell(value: lancamentoDespesaModel?.valor ?? 0),
+      "statusDespesa": PlutoCell(value: lancamentoDespesaModel?.statusDespesa ?? ''),
+      "historico": PlutoCell(value: lancamentoDespesaModel?.historico ?? ''),
+      "idContaDespesa": PlutoCell(value: lancamentoDespesaModel?.idContaDespesa ?? 0),
+      "idMetodoPagamento": PlutoCell(value: lancamentoDespesaModel?.idMetodoPagamento ?? 0),
     };
   }
 
   void plutoRowToObject() {
-    final modelFromRow = _lancamentoDespesaModelList.where( ((t) => t.id == plutoRow.cells['id']!.value) ).toList();
+    final modelFromRow = _lancamentoDespesaModelList.where(((t) => t.id == plutoRow.cells['id']!.value)).toList();
     if (modelFromRow.isEmpty) {
       lancamentoDespesaModel.plutoRowToObject(plutoRow);
     } else {
@@ -114,7 +116,10 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
   }
 
   Future getList({Filter? filter}) async {
-    await lancamentoDespesaRepository.getList(filter: filter).then( (data){ _lancamentoDespesaModelList = data; } );
+    filter = Util.applyMonthYearToFilter(mesAno, filter ?? Filter());
+    await lancamentoDespesaRepository.getList(filter: filter).then((data) {
+      _lancamentoDespesaModelList = data;
+    });
   }
 
   void printReport() {
@@ -130,10 +135,10 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
   void callEditPage() {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
-			contaDespesaModelController.text = currentRow.cells['contaDespesa']?.value ?? '';
-			metodoPagamentoModelController.text = currentRow.cells['metodoPagamento']?.value ?? '';
-			valorController.text = currentRow.cells['valor']?.value?.toStringAsFixed(2) ?? '';
-			historicoController.text = currentRow.cells['historico']?.value ?? '';
+      contaDespesaModelController.text = currentRow.cells['contaDespesa']?.value ?? '';
+      metodoPagamentoModelController.text = currentRow.cells['metodoPagamento']?.value ?? '';
+      valorController.text = currentRow.cells['valor']?.value?.toStringAsFixed(2) ?? '';
+      historicoController.text = currentRow.cells['historico']?.value ?? '';
 
       plutoRow = currentRow;
       formWasChanged = false;
@@ -149,12 +154,12 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
   }
 
   void callEditPageToInsert() {
-    _plutoGridStateManager.prependNewRows(); 
+    _plutoGridStateManager.prependNewRows();
     final cell = _plutoGridStateManager.rows.first.cells.entries.elementAt(0).value;
-    _plutoGridStateManager.setCurrentCell(cell, 0); 
+    _plutoGridStateManager.setCurrentCell(cell, 0);
     _isInserting = true;
     lancamentoDespesaModel = LancamentoDespesaModel();
-    callEditPage();   
+    callEditPage();
   }
 
   void handleKeyboard(PlutoKeyManagerEvent event) {
@@ -165,14 +170,14 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
         noPrivilegeMessage();
       }
     }
-  } 
+  }
 
   Future delete() async {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
       showDeleteDialog(() async {
         if (await lancamentoDespesaRepository.delete(id: currentRow.cells['id']!.value)) {
-          _lancamentoDespesaModelList.removeWhere( ((t) => t.id == currentRow.cells['id']!.value) );
+          _lancamentoDespesaModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
@@ -187,30 +192,42 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     await Util.exportToCSV(plutoGridStateManager.rows, plutoGridStateManager.columns, 'lancamentos_de_despesa');
   }
 
+  void showImportDataDialog() {
+    Get.dialog(
+      MonthYearPickerDialog(
+        onConfirm: (selectedDate) async {
+          await lancamentoDespesaRepository.transferDataFromOtherMonth(selectedDate, mesAno).then((data) async {
+            await loadData();
+          });
+        },
+      ),
+    );
+  }
+
   // edit page
   final scrollController = ScrollController();
-	final contaDespesaModelController = TextEditingController();
-	final metodoPagamentoModelController = TextEditingController();
-	final valorController = MoneyMaskedTextController();
-	final historicoController = TextEditingController();
+  final contaDespesaModelController = TextEditingController();
+  final metodoPagamentoModelController = TextEditingController();
+  final valorController = MoneyMaskedTextController();
+  final historicoController = TextEditingController();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
 
   final _formWasChanged = false.obs;
   get formWasChanged => _formWasChanged.value;
-  set formWasChanged(value) => _formWasChanged.value = value; 
+  set formWasChanged(value) => _formWasChanged.value = value;
 
   void objectToPlutoRow() {
-		plutoRow.cells['id']?.value = lancamentoDespesaModel.id;
-		plutoRow.cells['idContaDespesa']?.value = lancamentoDespesaModel.idContaDespesa;
-		plutoRow.cells['contaDespesa']?.value = lancamentoDespesaModel.contaDespesaModel?.descricao;
-		plutoRow.cells['idMetodoPagamento']?.value = lancamentoDespesaModel.idMetodoPagamento;
-		plutoRow.cells['metodoPagamento']?.value = lancamentoDespesaModel.metodoPagamentoModel?.descricao;
-		plutoRow.cells['dataDespesa']?.value = Util.formatDate(lancamentoDespesaModel.dataDespesa);
-		plutoRow.cells['valor']?.value = lancamentoDespesaModel.valor;
-		plutoRow.cells['statusDespesa']?.value = lancamentoDespesaModel.statusDespesa;
-		plutoRow.cells['historico']?.value = lancamentoDespesaModel.historico;
+    plutoRow.cells['id']?.value = lancamentoDespesaModel.id;
+    plutoRow.cells['idContaDespesa']?.value = lancamentoDespesaModel.idContaDespesa;
+    plutoRow.cells['contaDespesa']?.value = lancamentoDespesaModel.contaDespesaModel?.descricao;
+    plutoRow.cells['idMetodoPagamento']?.value = lancamentoDespesaModel.idMetodoPagamento;
+    plutoRow.cells['metodoPagamento']?.value = lancamentoDespesaModel.metodoPagamentoModel?.descricao;
+    plutoRow.cells['dataDespesa']?.value = Util.formatDate(lancamentoDespesaModel.dataDespesa);
+    plutoRow.cells['valor']?.value = lancamentoDespesaModel.valor;
+    plutoRow.cells['statusDespesa']?.value = lancamentoDespesaModel.statusDespesa;
+    plutoRow.cells['historico']?.value = lancamentoDespesaModel.historico;
   }
 
   Future<void> save() async {
@@ -219,7 +236,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
       showErrorSnackBar(message: 'validator_form_message'.tr);
     } else {
       if (formWasChanged) {
-        final result = await lancamentoDespesaRepository.save(lancamentoDespesaModel: lancamentoDespesaModel); 
+        final result = await lancamentoDespesaRepository.save(lancamentoDespesaModel: lancamentoDespesaModel);
         if (result != null) {
           lancamentoDespesaModel = result;
           if (_isInserting) {
@@ -241,44 +258,43 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     } else {
       Get.back();
     }
-  }  
+  }
 
-	Future callContaDespesaLookup() async { 
-		final lookupController = Get.find<LookupController>(); 
-		lookupController.refreshItems(standardValue: '%'); 
-		lookupController.title = '${'lookup_page_title'.tr} [Conta]'; 
-		lookupController.route = '/conta-despesa/'; 
-		lookupController.gridColumns = contaDespesaGridColumns(isForLookup: true); 
-		lookupController.aliasColumns = ContaDespesaModel.aliasColumns; 
-		lookupController.dbColumns = ContaDespesaModel.dbColumns; 
+  Future callContaDespesaLookup() async {
+    final lookupController = Get.find<LookupController>();
+    lookupController.refreshItems(standardValue: '%');
+    lookupController.title = '${'lookup_page_title'.tr} [Conta]';
+    lookupController.route = '/conta-despesa/';
+    lookupController.gridColumns = contaDespesaGridColumns(isForLookup: true);
+    lookupController.aliasColumns = ContaDespesaModel.aliasColumns;
+    lookupController.dbColumns = ContaDespesaModel.dbColumns;
 
-		final plutoRowResult = await Get.toNamed(Routes.lookupPage); 
-		if (plutoRowResult != null) { 
-			lancamentoDespesaModel.idContaDespesa = plutoRowResult.cells['id']!.value; 
-			lancamentoDespesaModel.contaDespesaModel!.plutoRowToObject(plutoRowResult); 
-			contaDespesaModelController.text = lancamentoDespesaModel.contaDespesaModel?.descricao ?? ''; 
-			formWasChanged = true; 
-		}
-	}
+    final plutoRowResult = await Get.toNamed(Routes.lookupPage);
+    if (plutoRowResult != null) {
+      lancamentoDespesaModel.idContaDespesa = plutoRowResult.cells['id']!.value;
+      lancamentoDespesaModel.contaDespesaModel!.plutoRowToObject(plutoRowResult);
+      contaDespesaModelController.text = lancamentoDespesaModel.contaDespesaModel?.descricao ?? '';
+      formWasChanged = true;
+    }
+  }
 
-	Future callMetodoPagamentoLookup() async { 
-		final lookupController = Get.find<LookupController>(); 
-		lookupController.refreshItems(standardValue: '%'); 
-		lookupController.title = '${'lookup_page_title'.tr} [Método Pagamento]'; 
-		lookupController.route = '/metodo-pagamento/'; 
-		lookupController.gridColumns = metodoPagamentoGridColumns(isForLookup: true); 
-		lookupController.aliasColumns = MetodoPagamentoModel.aliasColumns; 
-		lookupController.dbColumns = MetodoPagamentoModel.dbColumns; 
+  Future callMetodoPagamentoLookup() async {
+    final lookupController = Get.find<LookupController>();
+    lookupController.refreshItems(standardValue: '%');
+    lookupController.title = '${'lookup_page_title'.tr} [Método Pagamento]';
+    lookupController.route = '/metodo-pagamento/';
+    lookupController.gridColumns = metodoPagamentoGridColumns(isForLookup: true);
+    lookupController.aliasColumns = MetodoPagamentoModel.aliasColumns;
+    lookupController.dbColumns = MetodoPagamentoModel.dbColumns;
 
-		final plutoRowResult = await Get.toNamed(Routes.lookupPage); 
-		if (plutoRowResult != null) { 
-			lancamentoDespesaModel.idMetodoPagamento = plutoRowResult.cells['id']!.value; 
-			lancamentoDespesaModel.metodoPagamentoModel!.plutoRowToObject(plutoRowResult); 
-			metodoPagamentoModelController.text = lancamentoDespesaModel.metodoPagamentoModel?.descricao ?? ''; 
-			formWasChanged = true; 
-		}
-	}
-
+    final plutoRowResult = await Get.toNamed(Routes.lookupPage);
+    if (plutoRowResult != null) {
+      lancamentoDespesaModel.idMetodoPagamento = plutoRowResult.cells['id']!.value;
+      lancamentoDespesaModel.metodoPagamentoModel!.plutoRowToObject(plutoRowResult);
+      metodoPagamentoModelController.text = lancamentoDespesaModel.metodoPagamentoModel?.descricao ?? '';
+      formWasChanged = true;
+    }
+  }
 
   // override
   @override
@@ -286,19 +302,20 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     bootstrapGridParameters(
       gutterSize: Constants.flutterBootstrapGutterSize,
     );
-		functionName = "lancamento_despesa";
-    setPrivilege();		
+    functionName = "lancamento_despesa";
+    setPrivilege();
+    mesAno = mesAno.isEmpty ? "${DateTime.now().month}/${DateTime.now().year}" : mesAno;
     super.onInit();
   }
 
   @override
   void onClose() {
-		contaDespesaModelController.dispose();
-		metodoPagamentoModelController.dispose();
-		valorController.dispose();
-		historicoController.dispose();
+    contaDespesaModelController.dispose();
+    metodoPagamentoModelController.dispose();
+    valorController.dispose();
+    historicoController.dispose();
     keyboardListener.cancel();
-    scrollController.dispose(); 
+    scrollController.dispose();
     super.onClose();
   }
 }
