@@ -8,8 +8,6 @@ class LancamentoReceitaDomain {
 				return 'Recebido'; 
 			case 'A': 
 				return 'A Receber'; 
-			case 'V': 
-				return 'Vencido'; 
 			default: 
 				return null; 
 		} 
@@ -21,8 +19,6 @@ class LancamentoReceitaDomain {
 				return 'R'; 
 			case 'A Receber': 
 				return 'A'; 
-			case 'Vencido': 
-				return 'V'; 
 			default: 
 				return null; 
 		} 

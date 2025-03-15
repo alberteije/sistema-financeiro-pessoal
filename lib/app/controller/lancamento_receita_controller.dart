@@ -45,9 +45,17 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
 
   String mesAno = "";
 
-  double aReceber = 100;
-  double recebido = 200;
-  double total = 300;
+  final _aReceber = 0.0.obs;
+  double get aReceber => _aReceber.value;
+  set aReceber(double value) => _aReceber.value = value;
+
+  final _recebido = 0.0.obs;
+  double get recebido => _recebido.value;
+  set recebido(double value) => _recebido.value = value;
+
+  final _total = 0.0.obs;
+  double get total => _total.value;
+  set total(double value) => _total.value = value;
 
   // list page
   late StreamSubscription _keyboardListener;
@@ -117,6 +125,7 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
     await Get.find<LancamentoReceitaController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
+    calculateSumaryValues();
   }
 
   Future getList({Filter? filter}) async {
@@ -183,6 +192,7 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
         if (await lancamentoReceitaRepository.delete(id: currentRow.cells['id']!.value)) {
           _lancamentoReceitaModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
+          calculateSumaryValues();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
         }
@@ -248,12 +258,33 @@ class LancamentoReceitaController extends GetxController with ControllerBaseMixi
             _isInserting = false;
           }
           objectToPlutoRow();
+          calculateSumaryValues();
           Get.back();
         }
       } else {
         Get.back();
       }
     }
+  }
+
+  void calculateSumaryValues() {
+    double tempAReceber = 0.0;
+    double tempRecebido = 0.0;
+    double tempTotal = 0.0;
+
+    for (var lancamento in _lancamentoReceitaModelList) {
+      if (lancamento.statusReceita == "A Receber") {
+        tempAReceber += lancamento.valor ?? 0;
+      } else if (lancamento.statusReceita == "Recebido") {
+        tempRecebido += lancamento.valor ?? 0;
+      }
+      tempTotal += lancamento.valor ?? 0;
+    }
+
+    // Atualiza os valores observáveis
+    aReceber = tempAReceber;
+    recebido = tempRecebido;
+    total = tempTotal;
   }
 
   void preventDataLoss() {

@@ -45,6 +45,18 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
 
   String mesAno = "";
 
+  final _aPagar = 0.0.obs;
+  double get aPagar => _aPagar.value;
+  set aPagar(double value) => _aPagar.value = value;
+
+  final _pago = 0.0.obs;
+  double get pago => _pago.value;
+  set pago(double value) => _pago.value = value;
+
+  final _total = 0.0.obs;
+  double get total => _total.value;
+  set total(double value) => _total.value = value;
+
   // list page
   late StreamSubscription _keyboardListener;
   get keyboardListener => _keyboardListener;
@@ -113,6 +125,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     await Get.find<LancamentoDespesaController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
+    calculateSumaryValues();
   }
 
   Future getList({Filter? filter}) async {
@@ -179,6 +192,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
         if (await lancamentoDespesaRepository.delete(id: currentRow.cells['id']!.value)) {
           _lancamentoDespesaModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
+          calculateSumaryValues();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
         }
@@ -244,12 +258,33 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
             _isInserting = false;
           }
           objectToPlutoRow();
+          calculateSumaryValues();
           Get.back();
         }
       } else {
         Get.back();
       }
     }
+  }
+
+  void calculateSumaryValues() {
+    double tempAPagar = 0.0;
+    double tempPago = 0.0;
+    double tempTotal = 0.0;
+
+    for (var lancamento in _lancamentoDespesaModelList) {
+      if (lancamento.statusDespesa == "A Pagar") {
+        tempAPagar += lancamento.valor ?? 0;
+      } else if (lancamento.statusDespesa == "Pago") {
+        tempPago += lancamento.valor ?? 0;
+      }
+      tempTotal += lancamento.valor ?? 0;
+    }
+
+    // Atualiza os valores observáveis
+    aPagar = tempAPagar;
+    pago = tempPago;
+    total = tempTotal;
   }
 
   void preventDataLoss() {

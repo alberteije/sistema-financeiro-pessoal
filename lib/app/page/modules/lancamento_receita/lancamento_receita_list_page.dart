@@ -53,33 +53,6 @@ class LancamentoReceitaListPage extends GetView<LancamentoReceitaController> {
               await controller.loadData();
             },
           ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0), // Evita que os textos encostem nas bordas
-              child: FittedBox(
-                fit: BoxFit.scaleDown, // Diminui o tamanho do texto se a tela for pequena
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "A Receber: R\$ ${controller.aReceber.toStringAsFixed(2)}",
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      "Recebido: R\$ ${controller.recebido.toStringAsFixed(2)}",
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      "Total: R\$ ${controller.total.toStringAsFixed(2)}",
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ]),
       ),
       body: Padding(
@@ -111,27 +84,27 @@ class LancamentoReceitaListPage extends GetView<LancamentoReceitaController> {
             ),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
-              color: Colors.black26, // Define um fundo para destacar os valores
+              color: Colors.black, // Define um fundo para destacar os valores
               alignment: Alignment.center,
               child: FittedBox(
                 fit: BoxFit.scaleDown, // Ajusta o tamanho automaticamente
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
+                    Obx(() => Text(
                       "A Receber: R\$ ${controller.aReceber.toStringAsFixed(2)}",
                       style: const TextStyle(color: Colors.white),
-                    ),
+                    )),
                     const SizedBox(width: 16),
-                    Text(
+                    Obx(() => Text(
                       "Recebido: R\$ ${controller.recebido.toStringAsFixed(2)}",
                       style: const TextStyle(color: Colors.white),
-                    ),
+                    )),
                     const SizedBox(width: 16),
-                    Text(
+                    Obx(() => Text(
                       "Total: R\$ ${controller.total.toStringAsFixed(2)}",
                       style: const TextStyle(color: Colors.white),
-                    ),
+                    )),
                   ],
                 ),
               ),

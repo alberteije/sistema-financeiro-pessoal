@@ -1013,7 +1013,7 @@ class $ExtratoBancariosTable extends ExtratoBancarios
   late final GeneratedColumn<String> idTransacao = GeneratedColumn<String>(
       'id_transacao', aliasedName, true,
       additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 30),
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 100),
       type: DriftSqlType.string,
       requiredDuringInsert: false);
   static const VerificationMeta _checknumMeta =
@@ -1022,7 +1022,7 @@ class $ExtratoBancariosTable extends ExtratoBancarios
   late final GeneratedColumn<String> checknum = GeneratedColumn<String>(
       'checknum', aliasedName, true,
       additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 20),
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 100),
       type: DriftSqlType.string,
       requiredDuringInsert: false);
   static const VerificationMeta _numeroReferenciaMeta =
@@ -1031,7 +1031,7 @@ class $ExtratoBancariosTable extends ExtratoBancarios
   late final GeneratedColumn<String> numeroReferencia = GeneratedColumn<String>(
       'numero_referencia', aliasedName, true,
       additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 32),
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 100),
       type: DriftSqlType.string,
       requiredDuringInsert: false);
   static const VerificationMeta _historicoMeta =
@@ -1040,7 +1040,7 @@ class $ExtratoBancariosTable extends ExtratoBancarios
   late final GeneratedColumn<String> historico = GeneratedColumn<String>(
       'historico', aliasedName, true,
       additionalChecks:
-          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 100),
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 500),
       type: DriftSqlType.string,
       requiredDuringInsert: false);
   static const VerificationMeta _conciliadoMeta =

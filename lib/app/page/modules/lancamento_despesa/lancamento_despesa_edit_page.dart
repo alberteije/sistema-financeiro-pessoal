@@ -174,7 +174,7 @@ class LancamentoDespesaEditPage extends StatelessWidget {
 															value: lancamentoDespesaController.lancamentoDespesaModel.statusDespesa ?? 'Pago',
 															labelText: 'Status',
 															hintText: 'Informe os dados para o campo Status Despesa',
-															items: const ['Pago','A Pagar','Vencido'],
+															items: const ['Pago','A Pagar'],
 															onChanged: (dynamic newValue) {
 																lancamentoDespesaController.lancamentoDespesaModel.statusDespesa = newValue;
 																lancamentoDespesaController.formWasChanged = true;

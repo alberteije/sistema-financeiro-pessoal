@@ -8,8 +8,6 @@ class LancamentoDespesaDomain {
 				return 'Pago'; 
 			case 'A': 
 				return 'A Pagar'; 
-			case 'V': 
-				return 'Vencido'; 
 			default: 
 				return null; 
 		} 
@@ -21,8 +19,6 @@ class LancamentoDespesaDomain {
 				return 'P'; 
 			case 'A Pagar': 
 				return 'A'; 
-			case 'Vencido': 
-				return 'V'; 
 			default: 
 				return null; 
 		} 

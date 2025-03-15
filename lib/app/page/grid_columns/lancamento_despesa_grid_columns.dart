@@ -25,7 +25,7 @@ List<PlutoColumn> lancamentoDespesaGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 400,
+			width: 200,
 			hide: isForLookup,
 		),
 		PlutoColumn(
@@ -38,7 +38,7 @@ List<PlutoColumn> lancamentoDespesaGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 400,
+			width: 200,
 			hide: isForLookup,
 		),
 		PlutoColumn(
@@ -50,7 +50,7 @@ List<PlutoColumn> lancamentoDespesaGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.center,
-			width: 200,
+			width: 100,
 		),
 		PlutoColumn(
 			title: "Valor",
@@ -61,7 +61,7 @@ List<PlutoColumn> lancamentoDespesaGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.right,
-			width: 200,
+			width: 100,
 		),
 		PlutoColumn(
 			title: "Status",
@@ -73,7 +73,7 @@ List<PlutoColumn> lancamentoDespesaGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 200,
+			width: 100,
 		),
 		PlutoColumn(
 			title: "Histórico",

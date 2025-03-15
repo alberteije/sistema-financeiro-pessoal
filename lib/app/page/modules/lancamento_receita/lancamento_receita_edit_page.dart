@@ -174,7 +174,7 @@ class LancamentoReceitaEditPage extends StatelessWidget {
 															value: lancamentoReceitaController.lancamentoReceitaModel.statusReceita ?? 'Recebido',
 															labelText: 'Status',
 															hintText: 'Informe os dados para o campo Status Receita',
-															items: const ['Recebido','A Receber','Vencido'],
+															items: const ['Recebido','A Receber'],
 															onChanged: (dynamic newValue) {
 																lancamentoReceitaController.lancamentoReceitaModel.statusReceita = newValue;
 																lancamentoReceitaController.formWasChanged = true;

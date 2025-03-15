@@ -58,30 +58,64 @@ class LancamentoDespesaListPage extends GetView<LancamentoDespesaController> {
           ),
 				]),
 			),
-			body: Padding(
-				padding: const EdgeInsets.all(5),
-				child: PlutoGrid(
-					configuration: gridConfiguration(),
-					noRowsWidget: Text('grid_no_rows'.tr),
-					createFooter: (stateManager) {
-						stateManager.setPageSize(Constants.gridRowsPerPage, notify: false);
-						return PlutoPagination(stateManager);
-					},
-					columns: controller.gridColumns,
-					rows: controller.plutoRows(),
-					onLoaded: (event) {
-						controller.plutoGridStateManager = event.stateManager;
-						controller.plutoGridStateManager.setSelectingMode(PlutoGridSelectingMode.row);
-						controller.keyboardListener = controller.plutoGridStateManager.keyManager!.subject.stream.listen(controller.handleKeyboard);
-						controller.loadData();
-					},
-					onRowDoubleTap: (event) {
-						controller.canUpdate ? controller.callEditPage() : controller.noPrivilegeMessage();
-					},
-					mode: PlutoGridMode.selectWithOneTap,
-				),
-			),
-		);
+      body: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Column(
+          children: [
+            Expanded(
+              // Permite que a PlutoGrid ocupe o espaço disponível
+              child: PlutoGrid(
+                configuration: gridConfiguration(),
+                noRowsWidget: Text('grid_no_rows'.tr),
+                createFooter: (stateManager) {
+                  stateManager.setPageSize(Constants.gridRowsPerPage, notify: false);
+                  return PlutoPagination(stateManager);
+                },
+                columns: controller.gridColumns,
+                rows: controller.plutoRows(),
+                onLoaded: (event) {
+                  controller.plutoGridStateManager = event.stateManager;
+                  controller.plutoGridStateManager.setSelectingMode(PlutoGridSelectingMode.row);
+                  controller.keyboardListener = controller.plutoGridStateManager.keyManager!.subject.stream.listen(controller.handleKeyboard);
+                  controller.loadData();
+                },
+                onRowDoubleTap: (event) {
+                  controller.canUpdate ? controller.callEditPage() : controller.noPrivilegeMessage();
+                },
+                mode: PlutoGridMode.selectWithOneTap,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+              color: Colors.black, // Define um fundo para destacar os valores
+              alignment: Alignment.center,
+              child: FittedBox(
+                fit: BoxFit.scaleDown, // Ajusta o tamanho automaticamente
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Obx(() => Text(
+                      "A Pagar: R\$ ${controller.aPagar.toStringAsFixed(2)}",
+                      style: const TextStyle(color: Colors.white),
+                    )),
+                    const SizedBox(width: 16),
+                    Obx(() => Text(
+                      "Pago: R\$ ${controller.pago.toStringAsFixed(2)}",
+                      style: const TextStyle(color: Colors.white),
+                    )),
+                    const SizedBox(width: 16),
+                    Obx(() => Text(
+                      "Total: R\$ ${controller.total.toStringAsFixed(2)}",
+                      style: const TextStyle(color: Colors.white),
+                    )),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
 	}
 
 }
