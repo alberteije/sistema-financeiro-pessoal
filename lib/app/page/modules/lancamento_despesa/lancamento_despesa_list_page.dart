@@ -95,17 +95,17 @@ class LancamentoDespesaListPage extends GetView<LancamentoDespesaController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Obx(() => Text(
-                      "A Pagar: R\$ ${controller.aPagar.toStringAsFixed(2)}",
+                      "A Pagar: ${Util.moneyFormat(controller.aPagar)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Pago: R\$ ${controller.pago.toStringAsFixed(2)}",
+                      "Pago: ${Util.moneyFormat(controller.pago)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Total: R\$ ${controller.total.toStringAsFixed(2)}",
+                      "Total: ${Util.moneyFormat(controller.total)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                   ],

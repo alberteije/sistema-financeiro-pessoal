@@ -613,6 +613,14 @@ class $ResumosTable extends Resumos with TableInfo<$ResumosTable, Resumo> {
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _mesAnoMeta = const VerificationMeta('mesAno');
+  @override
+  late final GeneratedColumn<String> mesAno = GeneratedColumn<String>(
+      'mes_ano', aliasedName, true,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 0, maxTextLength: 7),
+      type: DriftSqlType.string,
+      requiredDuringInsert: false);
   static const VerificationMeta _receitaDespesaMeta =
       const VerificationMeta('receitaDespesa');
   @override
@@ -660,6 +668,7 @@ class $ResumosTable extends Resumos with TableInfo<$ResumosTable, Resumo> {
   @override
   List<GeneratedColumn> get $columns => [
         id,
+        mesAno,
         receitaDespesa,
         codigo,
         descricao,
@@ -679,6 +688,10 @@ class $ResumosTable extends Resumos with TableInfo<$ResumosTable, Resumo> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('mes_ano')) {
+      context.handle(_mesAnoMeta,
+          mesAno.isAcceptableOrUnknown(data['mes_ano']!, _mesAnoMeta));
     }
     if (data.containsKey('receita_despesa')) {
       context.handle(
@@ -721,6 +734,8 @@ class $ResumosTable extends Resumos with TableInfo<$ResumosTable, Resumo> {
     return Resumo(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id']),
+      mesAno: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}mes_ano']),
       receitaDespesa: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}receita_despesa']),
       codigo: attachedDatabase.typeMapping
@@ -744,6 +759,7 @@ class $ResumosTable extends Resumos with TableInfo<$ResumosTable, Resumo> {
 
 class Resumo extends DataClass implements Insertable<Resumo> {
   final int? id;
+  final String? mesAno;
   final String? receitaDespesa;
   final String? codigo;
   final String? descricao;
@@ -752,6 +768,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
   final double? diferenca;
   const Resumo(
       {this.id,
+      this.mesAno,
       this.receitaDespesa,
       this.codigo,
       this.descricao,
@@ -763,6 +780,9 @@ class Resumo extends DataClass implements Insertable<Resumo> {
     final map = <String, Expression>{};
     if (!nullToAbsent || id != null) {
       map['id'] = Variable<int>(id);
+    }
+    if (!nullToAbsent || mesAno != null) {
+      map['mes_ano'] = Variable<String>(mesAno);
     }
     if (!nullToAbsent || receitaDespesa != null) {
       map['receita_despesa'] = Variable<String>(receitaDespesa);
@@ -790,6 +810,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Resumo(
       id: serializer.fromJson<int?>(json['id']),
+      mesAno: serializer.fromJson<String?>(json['mesAno']),
       receitaDespesa: serializer.fromJson<String?>(json['receitaDespesa']),
       codigo: serializer.fromJson<String?>(json['codigo']),
       descricao: serializer.fromJson<String?>(json['descricao']),
@@ -803,6 +824,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int?>(id),
+      'mesAno': serializer.toJson<String?>(mesAno),
       'receitaDespesa': serializer.toJson<String?>(receitaDespesa),
       'codigo': serializer.toJson<String?>(codigo),
       'descricao': serializer.toJson<String?>(descricao),
@@ -814,6 +836,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
 
   Resumo copyWith(
           {Value<int?> id = const Value.absent(),
+          Value<String?> mesAno = const Value.absent(),
           Value<String?> receitaDespesa = const Value.absent(),
           Value<String?> codigo = const Value.absent(),
           Value<String?> descricao = const Value.absent(),
@@ -822,6 +845,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
           Value<double?> diferenca = const Value.absent()}) =>
       Resumo(
         id: id.present ? id.value : this.id,
+        mesAno: mesAno.present ? mesAno.value : this.mesAno,
         receitaDespesa:
             receitaDespesa.present ? receitaDespesa.value : this.receitaDespesa,
         codigo: codigo.present ? codigo.value : this.codigo,
@@ -834,6 +858,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
   Resumo copyWithCompanion(ResumosCompanion data) {
     return Resumo(
       id: data.id.present ? data.id.value : this.id,
+      mesAno: data.mesAno.present ? data.mesAno.value : this.mesAno,
       receitaDespesa: data.receitaDespesa.present
           ? data.receitaDespesa.value
           : this.receitaDespesa,
@@ -852,6 +877,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
   String toString() {
     return (StringBuffer('Resumo(')
           ..write('id: $id, ')
+          ..write('mesAno: $mesAno, ')
           ..write('receitaDespesa: $receitaDespesa, ')
           ..write('codigo: $codigo, ')
           ..write('descricao: $descricao, ')
@@ -863,13 +889,14 @@ class Resumo extends DataClass implements Insertable<Resumo> {
   }
 
   @override
-  int get hashCode => Object.hash(id, receitaDespesa, codigo, descricao,
+  int get hashCode => Object.hash(id, mesAno, receitaDespesa, codigo, descricao,
       valorOrcado, valorRealizado, diferenca);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Resumo &&
           other.id == this.id &&
+          other.mesAno == this.mesAno &&
           other.receitaDespesa == this.receitaDespesa &&
           other.codigo == this.codigo &&
           other.descricao == this.descricao &&
@@ -880,6 +907,7 @@ class Resumo extends DataClass implements Insertable<Resumo> {
 
 class ResumosCompanion extends UpdateCompanion<Resumo> {
   final Value<int?> id;
+  final Value<String?> mesAno;
   final Value<String?> receitaDespesa;
   final Value<String?> codigo;
   final Value<String?> descricao;
@@ -888,6 +916,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
   final Value<double?> diferenca;
   const ResumosCompanion({
     this.id = const Value.absent(),
+    this.mesAno = const Value.absent(),
     this.receitaDespesa = const Value.absent(),
     this.codigo = const Value.absent(),
     this.descricao = const Value.absent(),
@@ -897,6 +926,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
   });
   ResumosCompanion.insert({
     this.id = const Value.absent(),
+    this.mesAno = const Value.absent(),
     this.receitaDespesa = const Value.absent(),
     this.codigo = const Value.absent(),
     this.descricao = const Value.absent(),
@@ -906,6 +936,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
   });
   static Insertable<Resumo> custom({
     Expression<int>? id,
+    Expression<String>? mesAno,
     Expression<String>? receitaDespesa,
     Expression<String>? codigo,
     Expression<String>? descricao,
@@ -915,6 +946,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (mesAno != null) 'mes_ano': mesAno,
       if (receitaDespesa != null) 'receita_despesa': receitaDespesa,
       if (codigo != null) 'codigo': codigo,
       if (descricao != null) 'descricao': descricao,
@@ -926,6 +958,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
 
   ResumosCompanion copyWith(
       {Value<int?>? id,
+      Value<String?>? mesAno,
       Value<String?>? receitaDespesa,
       Value<String?>? codigo,
       Value<String?>? descricao,
@@ -934,6 +967,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
       Value<double?>? diferenca}) {
     return ResumosCompanion(
       id: id ?? this.id,
+      mesAno: mesAno ?? this.mesAno,
       receitaDespesa: receitaDespesa ?? this.receitaDespesa,
       codigo: codigo ?? this.codigo,
       descricao: descricao ?? this.descricao,
@@ -948,6 +982,9 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (mesAno.present) {
+      map['mes_ano'] = Variable<String>(mesAno.value);
     }
     if (receitaDespesa.present) {
       map['receita_despesa'] = Variable<String>(receitaDespesa.value);
@@ -974,6 +1011,7 @@ class ResumosCompanion extends UpdateCompanion<Resumo> {
   String toString() {
     return (StringBuffer('ResumosCompanion(')
           ..write('id: $id, ')
+          ..write('mesAno: $mesAno, ')
           ..write('receitaDespesa: $receitaDespesa, ')
           ..write('codigo: $codigo, ')
           ..write('descricao: $descricao, ')
@@ -2730,6 +2768,7 @@ class $$LancamentoDespesasTableOrderingComposer
 
 typedef $$ResumosTableCreateCompanionBuilder = ResumosCompanion Function({
   Value<int?> id,
+  Value<String?> mesAno,
   Value<String?> receitaDespesa,
   Value<String?> codigo,
   Value<String?> descricao,
@@ -2739,6 +2778,7 @@ typedef $$ResumosTableCreateCompanionBuilder = ResumosCompanion Function({
 });
 typedef $$ResumosTableUpdateCompanionBuilder = ResumosCompanion Function({
   Value<int?> id,
+  Value<String?> mesAno,
   Value<String?> receitaDespesa,
   Value<String?> codigo,
   Value<String?> descricao,
@@ -2765,6 +2805,7 @@ class $$ResumosTableTableManager extends RootTableManager<
               $$ResumosTableOrderingComposer(ComposerState(db, table)),
           updateCompanionCallback: ({
             Value<int?> id = const Value.absent(),
+            Value<String?> mesAno = const Value.absent(),
             Value<String?> receitaDespesa = const Value.absent(),
             Value<String?> codigo = const Value.absent(),
             Value<String?> descricao = const Value.absent(),
@@ -2774,6 +2815,7 @@ class $$ResumosTableTableManager extends RootTableManager<
           }) =>
               ResumosCompanion(
             id: id,
+            mesAno: mesAno,
             receitaDespesa: receitaDespesa,
             codigo: codigo,
             descricao: descricao,
@@ -2783,6 +2825,7 @@ class $$ResumosTableTableManager extends RootTableManager<
           ),
           createCompanionCallback: ({
             Value<int?> id = const Value.absent(),
+            Value<String?> mesAno = const Value.absent(),
             Value<String?> receitaDespesa = const Value.absent(),
             Value<String?> codigo = const Value.absent(),
             Value<String?> descricao = const Value.absent(),
@@ -2792,6 +2835,7 @@ class $$ResumosTableTableManager extends RootTableManager<
           }) =>
               ResumosCompanion.insert(
             id: id,
+            mesAno: mesAno,
             receitaDespesa: receitaDespesa,
             codigo: codigo,
             descricao: descricao,
@@ -2807,6 +2851,11 @@ class $$ResumosTableFilterComposer
   $$ResumosTableFilterComposer(super.$state);
   ColumnFilters<int> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get mesAno => $state.composableBuilder(
+      column: $state.table.mesAno,
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
@@ -2846,6 +2895,11 @@ class $$ResumosTableOrderingComposer
   $$ResumosTableOrderingComposer(super.$state);
   ColumnOrderings<int> get id => $state.composableBuilder(
       column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get mesAno => $state.composableBuilder(
+      column: $state.table.mesAno,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

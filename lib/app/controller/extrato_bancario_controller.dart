@@ -48,6 +48,8 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
 
   var _isInserting = false;
 
+  String mesAno = "";
+
   final _creditos = 0.0.obs;
   double get creditos => _creditos.value;
   set creditos(double value) => _creditos.value = value;
@@ -127,9 +129,11 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
     await Get.find<ExtratoBancarioController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
+    calculateSumaryValues();
   }
 
   Future getList({Filter? filter}) async {
+    filter = Util.applyMonthYearToFilter(mesAno, filter ?? Filter());
     await extratoBancarioRepository.getList(filter: filter).then((data) {
       _extratoBancarioModelList = data;
     });
@@ -211,61 +215,63 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
           String arquivoOFX = await file.readAsString();
           final arquivoXML = xml.XmlDocument.parse(arquivoOFX);
 
-          // 1. Limpa a lista
+          // limpa a lista
           _extratoBancarioModelList.clear();
 
-          // 4. Captura os lançamentos no arquivo
-          final lancamentos = arquivoXML.findAllElements('STMTTRN');
+          // Exclui os registros atuais do banco
+          await extratoBancarioRepository.deleteByDateRange(filter);
 
+          // Captura os lançamentos no arquivo
+          final lancamentos = arquivoXML.findAllElements('STMTTRN');
           for (var lancamento in lancamentos) {
             var extrato = ExtratoBancarioModel();
             extrato.id = 0;
-            extrato.dataTransacao = DateTime.utc(
-              int.parse(lancamento.getElement('DTPOSTED')?.text.substring(0, 4) ?? ''),
-              int.parse(lancamento.getElement('DTPOSTED')?.text.substring(4, 6) ?? ''),
-              int.parse(lancamento.getElement('DTPOSTED')?.text.substring(6, 8) ?? ''),
-            );
+            final ano = int.parse(lancamento.getElement('DTPOSTED')?.text.substring(0, 4) ?? '');
+            final mes = int.parse(lancamento.getElement('DTPOSTED')?.text.substring(4, 6) ?? '');
+            final dia = int.parse(lancamento.getElement('DTPOSTED')?.text.substring(6, 8) ?? '');
+
+            String mesAnoExtrato = "$mes/$ano";
+            if (mesAno != mesAnoExtrato) {
+              showErrorSnackBar(message: "Existem lançamentos no extrato que estão fora do mês selacionado.");
+              return;
+            }
+
+            extrato.dataTransacao = DateTime.utc(ano, mes, dia);
             extrato.idTransacao = lancamento.getElement('FITID')?.text;
             extrato.checknum = lancamento.getElement('CHECKNUM')?.text;
             extrato.numeroReferencia = lancamento.getElement('REFNUM')?.text;
             extrato.valor = double.tryParse(lancamento.getElement('TRNAMT')?.text ?? "0");
             extrato.historico = lancamento.getElement('MEMO')?.text;
 
-            // 5. Persiste no banco de dados
+            // Persiste no banco de dados
             final savedExtrato = await extratoBancarioRepository.save(extratoBancarioModel: extrato);
             if (savedExtrato != null) {
               _extratoBancarioModelList.add(savedExtrato);
             }
           }
+          await loadData();
         } else {
-          // User canceled the picker
+          showInfoSnackBar(message: "Nenhum arquivo selecionado.");
         }
-
-        // isLoading = true;
-        // update(); // Atualiza o estado para exibir o CircularProgressIndicator
-
-        // 1. Limpa a lista
-        // _extratoBancarioModelList.clear();
-
-        // 2. Exclui os registros atuais do banco
-        // await extratoBancarioRepository.excluirTodos();
-
-        // // 4. Captura os lançamentos no arquivo
-        // final lancamentos = arquivoXML.findAllElements('STMTTRN');
-
-        // isLoading = false;
-        // update(); // Atualiza a interface após a conclusão
       } catch (e) {
-        // isLoading = false;
-        update();
         showErrorSnackBar(message: "Erro ao importar extrato: ${e.toString()}");
       }
     });
   }
 
-  void reconciliateData() {}
+  Future<void> reconcileTransactions() async {
+    showQuestionDialog('Deseja conciliar os lançamentos?', () async {
+      await extratoBancarioRepository.reconcileTransactions(filter).then((value) async {
+        await loadData();
+      });
+    });
+  }
 
-  void exportAsTransaction() {}
+  Future<void> exportDataToIncomesAndExpenses() async {
+    showQuestionDialog('Deseja exportar os dados para Lançamentos de Receita e Despesa?', () async {
+      await extratoBancarioRepository.exportDataToIncomesAndExpenses(filter);
+    });
+  }
 
   // edit page
   final scrollController = ScrollController();
@@ -352,6 +358,7 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
     );
     functionName = "extrato_bancario";
     setPrivilege();
+    mesAno = mesAno.isEmpty ? "${DateTime.now().month}/${DateTime.now().year}" : mesAno;
     super.onInit();
   }
 

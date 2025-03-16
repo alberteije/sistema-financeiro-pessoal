@@ -11,11 +11,7 @@ class ExtratoBancarioDriftProvider extends ProviderBase {
 		List<ExtratoBancarioGrouped> extratoBancarioDriftList = [];
 
 		try {
-			if (filter != null && filter.field != null) {
-				extratoBancarioDriftList = await Session.database.extratoBancarioDao.getGroupedList(field: filter.field, value: filter.value!);
-			} else {
-				extratoBancarioDriftList = await Session.database.extratoBancarioDao.getGroupedList(); 
-			}
+      extratoBancarioDriftList = await Session.database.extratoBancarioDao.getGroupedList(filter: filter!);
 			if (extratoBancarioDriftList.isNotEmpty) {
 				return toListModel(extratoBancarioDriftList);
 			} else {
@@ -67,6 +63,33 @@ class ExtratoBancarioDriftProvider extends ProviderBase {
 		}
 		return null;
 	}	
+
+  Future deleteByDateRange(Filter filter) async {
+    try {
+      await Session.database.extratoBancarioDao.deleteByDateRange(filter);
+      return true;
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+
+  Future exportDataToIncomesAndExpenses(Filter filter) async {
+    try {
+      await Session.database.extratoBancarioDao.exportDataToIncomesAndExpenses(filter);
+      return true;
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+
+  Future reconcileTransactions(Filter filter) async {
+    try {
+      await Session.database.extratoBancarioDao.reconcileTransactions(filter);
+      return true;
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
 
 	List<ExtratoBancarioModel> toListModel(List<ExtratoBancarioGrouped> extratoBancarioDriftList) {
 		List<ExtratoBancarioModel> listModel = [];

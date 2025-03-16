@@ -6,4 +6,8 @@ part of 'extrato_bancario_dao.dart';
 mixin _$ExtratoBancarioDaoMixin on DatabaseAccessor<AppDatabase> {
   $ExtratoBancariosTable get extratoBancarios =>
       attachedDatabase.extratoBancarios;
+  $LancamentoReceitasTable get lancamentoReceitas =>
+      attachedDatabase.lancamentoReceitas;
+  $LancamentoDespesasTable get lancamentoDespesas =>
+      attachedDatabase.lancamentoDespesas;
 }

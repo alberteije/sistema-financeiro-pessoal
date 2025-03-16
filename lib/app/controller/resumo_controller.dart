@@ -39,9 +39,13 @@ class ResumoController extends GetxController with ControllerBaseMixin {
 
   final _filter = Filter().obs;
   Filter get filter => _filter.value;
-  set filter(value) => _filter.value = value ?? Filter(); 
+  set filter(value) => _filter.value = value ?? Filter();
 
   var _isInserting = false;
+
+  final _saldo = 0.0.obs;
+  double get saldo => _saldo.value;
+  set saldo(double value) => _saldo.value = value;
 
   // list page
   late StreamSubscription _keyboardListener;
@@ -109,6 +113,7 @@ class ResumoController extends GetxController with ControllerBaseMixin {
     await Get.find<ResumoController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
+    calculateSumaryValues();
   }
 
   Future getList({Filter? filter}) async {
@@ -182,6 +187,21 @@ class ResumoController extends GetxController with ControllerBaseMixin {
     }
   }
 
+  Future<void> doSummary() async {
+    showQuestionDialog('Deseja processar o resumo?', () async {
+      // await extratoBancarioRepository.reconcileTransactions(filter).then((value) async {
+      //   await loadData();
+      // });
+    });
+  }
+
+  Future<void> calculateSummaryValues() async {
+    showQuestionDialog('Deseja calcular os valores do resumo?', () async {
+      // await extratoBancarioRepository.reconcileTransactions(filter).then((value) async {
+      //   await loadData();
+      // });
+    });
+  }
 
   // edit page
   final scrollController = ScrollController();
@@ -228,6 +248,23 @@ class ResumoController extends GetxController with ControllerBaseMixin {
         Get.back();
       }
     }
+  }
+
+void calculateSumaryValues() {
+    double tempCreditos = 0.0;
+    double tempDebitos = 0.0;
+
+    for (var lancamento in _resumoModelList) {
+      lancamento.valorRealizado = lancamento.valorRealizado ?? 0;
+      if (lancamento.receitaDespesa == "R") {
+        tempCreditos += lancamento.valorRealizado ?? 0;
+      } else {
+        tempDebitos += lancamento.valorRealizado ?? 0;
+      }
+    }
+
+    // Atualiza os valores observáveis
+    saldo = tempCreditos - tempDebitos;
   }
 
   void preventDataLoss() {

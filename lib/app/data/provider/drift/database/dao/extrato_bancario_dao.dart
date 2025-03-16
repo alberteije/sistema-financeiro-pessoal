@@ -1,11 +1,15 @@
 import 'package:drift/drift.dart';
+import 'package:financeiro_pessoal/app/data/model/transient/filter.dart';
 import 'package:financeiro_pessoal/app/data/provider/drift/database/database.dart';
 import 'package:financeiro_pessoal/app/data/provider/drift/database/database_imports.dart';
+import 'package:financeiro_pessoal/app/page/shared_widget/message_dialog.dart';
 
 part 'extrato_bancario_dao.g.dart';
 
 @DriftAccessor(tables: [
 	ExtratoBancarios,
+  LancamentoReceitas,
+  LancamentoDespesas,
 ])
 class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBancarioDaoMixin {
 	final AppDatabase db;
@@ -27,20 +31,22 @@ class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBan
 		return extratoBancarioList;	 
 	}
 
-	Future<List<ExtratoBancarioGrouped>> getGroupedList({String? field, dynamic value}) async {
+	Future<List<ExtratoBancarioGrouped>> getGroupedList({required Filter filter}) async {
 		final query = select(extratoBancarios)
 			.join([]);
 
-		if (field != null && field != '') { 
-			final column = extratoBancarios.$columns.where(((column) => column.$name == field)).first;
-			if (column is TextColumn) {
-				query.where((column as TextColumn).like('%$value%'));
-			} else if (column is IntColumn) {
-				query.where(column.equals(int.tryParse(value) as Object));
-			} else if (column is RealColumn) {
-				query.where(column.equals(double.tryParse(value) as Object));
-			}
-		}
+      query.where(extratoBancarios.dataTransacao.isBetweenValues(filter.dateIni!, filter.dateEnd!));
+
+    if (filter.field != null && filter.field != '') {
+      final column = extratoBancarios.$columns.where(((column) => column.$name == filter.field)).first;
+      if (column is TextColumn) {
+        query.where((column as TextColumn).like('%$filter.value%'));
+      } else if (column is IntColumn) {
+        query.where(column.equals(int.tryParse(filter.value!) as Object));
+      } else if (column is RealColumn) {
+        query.where(column.equals(double.tryParse(filter.value!) as Object));
+      }
+    }
 
 		extratoBancarioGroupedList = await query.map((row) {
 			final extratoBancario = row.readTableOrNull(extratoBancarios); 
@@ -69,7 +75,7 @@ class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBan
 	} 
 
 	Future<ExtratoBancarioGrouped?> getObjectGrouped({String? field, dynamic value}) async {
-		final result = await getGroupedList(field: field, value: value);
+		final result = await getGroupedList(filter: Filter(field: field, value: value));
 
 		if (result.length != 1) {
 			return null;
@@ -114,4 +120,124 @@ class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBan
 		final result = await customSelect("select MAX(id) as LAST from extrato_bancario").getSingleOrNull();
 		return result?.data["LAST"] ?? 0;
 	} 
+
+  Future<int> deleteByDateRange(Filter filter) async {
+    if (filter.dateIni == null || filter.dateEnd == null) return 0;
+
+    return (delete(extratoBancarios)
+          ..where((t) => 
+              t.dataTransacao.isBiggerOrEqualValue(filter.dateIni!) & 
+              t.dataTransacao.isSmallerOrEqualValue(filter.dateEnd!)))
+        .go();
+  }
+
+  Future<void> exportDataToIncomesAndExpenses(Filter filter) async {
+    if (filter.dateIni == null || filter.dateEnd == null) {
+      showErrorSnackBar(message: "Período inválido! Defina uma data inicial e final.");
+      return;
+    }
+
+    // Buscar os lançamentos do extrato bancário dentro do período informado
+    final extratos = await (select(extratoBancarios)
+          ..where((tbl) => tbl.dataTransacao.isBetweenValues(filter.dateIni!, filter.dateEnd!)))
+        .get();
+
+    if (extratos.isEmpty) {
+      showErrorSnackBar(message: "Nenhum lançamento encontrado no período selecionado.");
+      return;
+    }
+
+    // Criar listas para receitas e despesas
+    final List<LancamentoReceitasCompanion> novasReceitas = [];
+    final List<LancamentoDespesasCompanion> novasDespesas = [];
+
+    for (final extrato in extratos) {
+      final valor = extrato.valor;
+      if (valor == 0) continue; // Ignorar valores zero
+
+      if (valor! > 0) {
+        // Criar um lançamento de receita
+        novasReceitas.add(LancamentoReceitasCompanion.insert(
+          // idContaReceita: const Value(1),
+          // idMetodoPagamento: const Value(1),
+          dataReceita: Value(extrato.dataTransacao),
+          valor: Value(valor),
+          statusReceita: const Value("R"),
+          historico: Value(extrato.historico),
+        ));
+      } else {
+        // Criar um lançamento de despesa
+        novasDespesas.add(LancamentoDespesasCompanion.insert(
+          // idContaDespesa: const Value(1),
+          // idMetodoPagamento: const Value(1),
+          dataDespesa: Value(extrato.dataTransacao),
+          valor: Value(valor.abs()), // Transforma em positivo
+          statusDespesa: const Value("P"),
+          historico: Value(extrato.historico),
+        ));
+      }
+    }
+
+    // Inserir os novos lançamentos no banco de dados
+    await batch((batch) {
+      if (novasReceitas.isNotEmpty) {
+        batch.insertAll(lancamentoReceitas, novasReceitas);
+      }
+      if (novasDespesas.isNotEmpty) {
+        batch.insertAll(lancamentoDespesas, novasDespesas);
+      }
+    });
+
+    showInfoSnackBar(message: "Lançamentos exportados com sucesso para o período selecionado!");
+  }
+
+  Future<void> reconcileTransactions(Filter filter) async {
+    if (filter.dateIni == null || filter.dateEnd == null) {
+      showErrorSnackBar(message: "Período inválido! Defina uma data inicial e final.");
+      return;
+    }
+
+    // Buscar os lançamentos do extrato bancário dentro do período informado
+    final extratos = await (select(extratoBancarios)
+          ..where((tbl) => tbl.dataTransacao.isBetweenValues(filter.dateIni!, filter.dateEnd!)))
+        .get();
+
+    if (extratos.isEmpty) {
+      showErrorSnackBar(message: "Nenhum lançamento encontrado no período selecionado.");
+      return;
+    }
+
+    for (final extrato in extratos) {
+      final valor = extrato.valor;
+      bool encontrado = false;
+
+      if (valor! > 0) {
+        // Procurar o valor nas receitas
+        final receitas = await (select(lancamentoReceitas)
+              ..where((tbl) =>
+                  tbl.valor.equals(valor) &
+                  tbl.dataReceita.isBetweenValues(filter.dateIni!, filter.dateEnd!)))
+            .get(); // Obtenha todos os registros correspondentes
+        encontrado = receitas.isNotEmpty; // Verifica se pelo menos um registro foi encontrado
+      } else {
+        // Procurar o valor (absoluto) nas despesas
+        final despesas = await (select(lancamentoDespesas)
+              ..where((tbl) =>
+                  tbl.valor.equals(valor.abs()) &
+                  tbl.dataDespesa.isBetweenValues(filter.dateIni!, filter.dateEnd!)))
+            .get(); // Obtenha todos os registros correspondentes
+        encontrado = despesas.isNotEmpty; // Verifica se pelo menos um registro foi encontrado
+      }
+
+      // Atualizar o status de conciliação no extrato
+      await (update(extratoBancarios)
+            ..where((tbl) => tbl.id.equals(extrato.id!)))
+          .write(ExtratoBancariosCompanion(
+            conciliado: Value(encontrado ? "S" : "N"),
+          ));
+    }
+
+    showInfoSnackBar(message: "Conciliação concluída com sucesso!");
+  }
+
 }

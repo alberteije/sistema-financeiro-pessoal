@@ -92,17 +92,17 @@ class LancamentoReceitaListPage extends GetView<LancamentoReceitaController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Obx(() => Text(
-                      "A Receber: R\$ ${controller.aReceber.toStringAsFixed(2)}",
+                      "A Receber: ${Util.moneyFormat(controller.aReceber)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Recebido: R\$ ${controller.recebido.toStringAsFixed(2)}",
+                      "Recebido: ${Util.moneyFormat(controller.recebido)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Total: R\$ ${controller.total.toStringAsFixed(2)}",
+                      "Total: ${Util.moneyFormat(controller.total)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                   ],

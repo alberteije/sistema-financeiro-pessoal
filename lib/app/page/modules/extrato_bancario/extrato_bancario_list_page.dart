@@ -1,3 +1,4 @@
+import 'package:financeiro_pessoal/app/page/shared_widget/input/month_year_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -26,13 +27,13 @@ class ExtratoBancarioListPage extends GetView<ExtratoBancarioController> {
             tooltip: 'Conciliar Dados',
             icon: const Icon(Icons.check_box_outlined),
             color: Colors.amber,
-            onPressed: controller.reconciliateData,
+            onPressed: controller.reconcileTransactions,
           ),
           IconButton(
             tooltip: 'Exportar como Lançamento',
             icon: const Icon(Icons.upload),
             color: Colors.lightGreen,
-            onPressed: controller.exportAsTransaction,
+            onPressed: controller.exportDataToIncomesAndExpenses,
           ),
 
 					exitButton(),
@@ -55,7 +56,13 @@ class ExtratoBancarioListPage extends GetView<ExtratoBancarioController> {
 				shape: const CircularNotchedRectangle(),
 				child: Row(children: [
 					printButton(onPressed: controller.printReport),
-					filterButton(onPressed: controller.callFilter)
+					filterButton(onPressed: controller.callFilter),
+          MonthYearPicker(
+            onChanged: (month, year) async {
+              controller.mesAno = "$month/$year";
+              await controller.loadData();
+            },
+          ),
 				]),
 			),
       body: Padding(
@@ -95,17 +102,17 @@ class ExtratoBancarioListPage extends GetView<ExtratoBancarioController> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Obx(() => Text(
-                      "Créditos: R\$ ${controller.creditos.toStringAsFixed(2)}",
+                      "Créditos: ${Util.moneyFormat(controller.creditos)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Débitos: R\$ ${controller.debitos.toStringAsFixed(2)}",
+                      "Débitos: ${Util.moneyFormat(controller.debitos)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                     const SizedBox(width: 16),
                     Obx(() => Text(
-                      "Saldo: R\$ ${controller.saldo.toStringAsFixed(2)}",
+                      "Saldo: ${Util.moneyFormat(controller.saldo)}",
                       style: const TextStyle(color: Colors.white),
                     )),
                   ],

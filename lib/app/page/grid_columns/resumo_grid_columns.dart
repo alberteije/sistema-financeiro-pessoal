@@ -25,7 +25,7 @@ List<PlutoColumn> resumoGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 200,
+			width: 100,
 		),
 		PlutoColumn(
 			title: "Código",
@@ -37,7 +37,7 @@ List<PlutoColumn> resumoGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 200,
+			width: 100,
 		),
 		PlutoColumn(
 			title: "Descrição",
@@ -49,7 +49,7 @@ List<PlutoColumn> resumoGridColumns({bool isForLookup = false}) {
 			enableHideColumnMenuItem: false,
 			titleTextAlign: PlutoColumnTextAlign.center,
 			textAlign: PlutoColumnTextAlign.left,
-			width: 200,
+			width: 300,
 		),
 		PlutoColumn(
 			title: "Valor Orçado",
