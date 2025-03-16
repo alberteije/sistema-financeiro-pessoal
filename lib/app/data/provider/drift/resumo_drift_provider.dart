@@ -68,6 +68,36 @@ class ResumoDriftProvider extends ProviderBase {
 		return null;
 	}	
 
+  Future doSummary(String selectedDate) async {
+    try {
+      await Session.database.resumoDao.doSummary(selectedDate);
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+
+  Future saveAll(List<ResumoModel> resumoList) async {
+    try {
+      for (var resumo in resumoList) {
+        if (resumo.id! > 0) {
+          await update(resumo);
+        } else {
+          await insert(resumo);
+        }
+      }
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+
+  Future calculateSummarryForAMonth(String selectedDate, Filter filter) async {
+    try {
+      await Session.database.resumoDao.calculateSummarryForAMonth(selectedDate, filter);
+    } on Exception catch (e) {
+      handleResultError(null, null, exception: e);
+    }
+  }
+
 	List<ResumoModel> toListModel(List<ResumoGrouped> resumoDriftList) {
 		List<ResumoModel> listModel = [];
 		for (var resumoDrift in resumoDriftList) {
@@ -86,6 +116,7 @@ class ResumoDriftProvider extends ProviderBase {
 				valorOrcado: resumoDrift.resumo?.valorOrcado,
 				valorRealizado: resumoDrift.resumo?.valorRealizado,
 				diferenca: resumoDrift.resumo?.diferenca,
+        mesAno: resumoDrift.resumo?.mesAno,
 			);
 		} else {
 			return null;
@@ -103,6 +134,7 @@ class ResumoDriftProvider extends ProviderBase {
 				valorOrcado: resumoModel.valorOrcado,
 				valorRealizado: resumoModel.valorRealizado,
 				diferenca: resumoModel.diferenca,
+        mesAno: resumoModel.mesAno,
 			),
 		);
 	}

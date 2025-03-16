@@ -1,3 +1,4 @@
+import 'package:financeiro_pessoal/app/page/shared_widget/input/month_year_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -26,8 +27,14 @@ class ResumoListPage extends GetView<ResumoController> {
             tooltip: 'Calcular Valores',
             icon: const Icon(Icons.calculate),
             color: Colors.amber,
-            onPressed: controller.calculateSummaryValues,
+            onPressed: controller.doCalculateValues,
           ),
+          Obx(() => IconButton(
+            tooltip: 'Salvar',
+            icon: const Icon(Icons.save),
+            color: controller.hasChanges.value ? Colors.orange : Colors.grey,
+            onPressed: controller.hasChanges.value ? controller.saveChanges : null,
+          )),
 					exitButton(),
 					const SizedBox(
 						height: 10,
@@ -48,7 +55,13 @@ class ResumoListPage extends GetView<ResumoController> {
 				shape: const CircularNotchedRectangle(),
 				child: Row(children: [
 					printButton(onPressed: controller.printReport),
-					filterButton(onPressed: controller.callFilter)
+					// filterButton(onPressed: controller.callFilter),
+          MonthYearPicker(
+            onChanged: (month, year) async {
+              controller.mesAno = "$month/$year";
+              await controller.loadData();
+            },
+          ),
 				]),
 			),
       body: Padding(
@@ -60,10 +73,10 @@ class ResumoListPage extends GetView<ResumoController> {
               child: PlutoGrid(
                 configuration: gridConfiguration(),
                 noRowsWidget: Text('grid_no_rows'.tr),
-                createFooter: (stateManager) {
-                  stateManager.setPageSize(Constants.gridRowsPerPage, notify: false);
-                  return PlutoPagination(stateManager);
-                },
+                // createFooter: (stateManager) {
+                //   stateManager.setPageSize(500, notify: false);
+                //   return PlutoPagination(stateManager);
+                // },
                 columns: controller.gridColumns,
                 rows: controller.plutoRows(),
                 onLoaded: (event) {
@@ -72,10 +85,13 @@ class ResumoListPage extends GetView<ResumoController> {
                   controller.keyboardListener = controller.plutoGridStateManager.keyManager!.subject.stream.listen(controller.handleKeyboard);
                   controller.loadData();
                 },
-                onRowDoubleTap: (event) {
-                  // controller.canUpdate ? controller.callEditPage() : controller.noPrivilegeMessage();
+                onChanged: (PlutoGridOnChangedEvent event) {
+                  controller.markAsChanged();
                 },
-                mode: PlutoGridMode.selectWithOneTap,
+                // onRowDoubleTap: (event) {
+                //   // controller.canUpdate ? controller.callEditPage() : controller.noPrivilegeMessage();
+                // },
+                // mode: PlutoGridMode.selectWithOneTap,
               ),
             ),
             Container(

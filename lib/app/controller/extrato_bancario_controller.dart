@@ -182,11 +182,11 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
 
   void handleKeyboard(PlutoKeyManagerEvent event) {
     if (event.isKeyDownEvent && event.event.logicalKey.keyId == LogicalKeyboardKey.enter.keyId) {
-      if (canUpdate) {
-        callEditPage();
-      } else {
-        noPrivilegeMessage();
-      }
+      // if (canUpdate) {
+      //   callEditPage();
+      // } else {
+      //   noPrivilegeMessage();
+      // }
     }
   }
 

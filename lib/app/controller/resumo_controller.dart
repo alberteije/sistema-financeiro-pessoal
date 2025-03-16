@@ -30,7 +30,7 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   get aliasColumns => _aliasColumns;
 
   final gridColumns = resumoGridColumns();
-  
+
   var _resumoModelList = <ResumoModel>[];
 
   final _resumoModel = ResumoModel().obs;
@@ -43,11 +43,19 @@ class ResumoController extends GetxController with ControllerBaseMixin {
 
   var _isInserting = false;
 
+	final RxBool hasChanges = false.obs;
+
+  String mesAno = "";
+
   final _saldo = 0.0.obs;
   double get saldo => _saldo.value;
   set saldo(double value) => _saldo.value = value;
 
   // list page
+	void markAsChanged() {
+    hasChanges.value = true;
+  }
+
   late StreamSubscription _keyboardListener;
   get keyboardListener => _keyboardListener;
   set keyboardListener(value) => _keyboardListener = value;
@@ -74,20 +82,20 @@ class ResumoController extends GetxController with ControllerBaseMixin {
     );
   }
 
-  Map<String, PlutoCell> _getPlutoCells({ ResumoModel? resumoModel}) {
+  Map<String, PlutoCell> _getPlutoCells({ResumoModel? resumoModel}) {
     return {
-			"id": PlutoCell(value: resumoModel?.id ?? 0),
-			"receitaDespesa": PlutoCell(value: resumoModel?.receitaDespesa ?? ''),
-			"codigo": PlutoCell(value: resumoModel?.codigo ?? ''),
-			"descricao": PlutoCell(value: resumoModel?.descricao ?? ''),
-			"valorOrcado": PlutoCell(value: resumoModel?.valorOrcado ?? 0),
-			"valorRealizado": PlutoCell(value: resumoModel?.valorRealizado ?? 0),
-			"diferenca": PlutoCell(value: resumoModel?.diferenca ?? 0),
+      "id": PlutoCell(value: resumoModel?.id ?? 0),
+      "receitaDespesa": PlutoCell(value: resumoModel?.receitaDespesa ?? ''),
+      "codigo": PlutoCell(value: resumoModel?.codigo ?? ''),
+      "descricao": PlutoCell(value: resumoModel?.descricao ?? ''),
+      "valorOrcado": PlutoCell(value: resumoModel?.valorOrcado ?? 0),
+      "valorRealizado": PlutoCell(value: resumoModel?.valorRealizado ?? 0),
+      "diferenca": PlutoCell(value: resumoModel?.diferenca ?? 0),
     };
   }
 
   void plutoRowToObject() {
-    final modelFromRow = _resumoModelList.where( ((t) => t.id == plutoRow.cells['id']!.value) ).toList();
+    final modelFromRow = _resumoModelList.where(((t) => t.id == plutoRow.cells['id']!.value)).toList();
     if (modelFromRow.isEmpty) {
       resumoModel.plutoRowToObject(plutoRow);
     } else {
@@ -113,11 +121,14 @@ class ResumoController extends GetxController with ControllerBaseMixin {
     await Get.find<ResumoController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
-    calculateSumaryValues();
+    calculateSummaryValues();
   }
 
   Future getList({Filter? filter}) async {
-    await resumoRepository.getList(filter: filter).then( (data){ _resumoModelList = data; } );
+    filter = Filter(field: 'mes_ano', value: mesAno.padLeft(7, '0'));
+    await resumoRepository.getList(filter: filter).then((data) {
+      _resumoModelList = data;
+    });
   }
 
   void printReport() {
@@ -133,11 +144,11 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   void callEditPage() {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
-			codigoController.text = currentRow.cells['codigo']?.value ?? '';
-			descricaoController.text = currentRow.cells['descricao']?.value ?? '';
-			valorOrcadoController.text = currentRow.cells['valorOrcado']?.value?.toStringAsFixed(2) ?? '';
-			valorRealizadoController.text = currentRow.cells['valorRealizado']?.value?.toStringAsFixed(2) ?? '';
-			diferencaController.text = currentRow.cells['diferenca']?.value?.toStringAsFixed(2) ?? '';
+      codigoController.text = currentRow.cells['codigo']?.value ?? '';
+      descricaoController.text = currentRow.cells['descricao']?.value ?? '';
+      valorOrcadoController.text = currentRow.cells['valorOrcado']?.value?.toStringAsFixed(2) ?? '';
+      valorRealizadoController.text = currentRow.cells['valorRealizado']?.value?.toStringAsFixed(2) ?? '';
+      diferencaController.text = currentRow.cells['diferenca']?.value?.toStringAsFixed(2) ?? '';
 
       plutoRow = currentRow;
       formWasChanged = false;
@@ -153,30 +164,30 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   }
 
   void callEditPageToInsert() {
-    _plutoGridStateManager.prependNewRows(); 
+    _plutoGridStateManager.prependNewRows();
     final cell = _plutoGridStateManager.rows.first.cells.entries.elementAt(0).value;
-    _plutoGridStateManager.setCurrentCell(cell, 0); 
+    _plutoGridStateManager.setCurrentCell(cell, 0);
     _isInserting = true;
     resumoModel = ResumoModel();
-    callEditPage();   
+    callEditPage();
   }
 
   void handleKeyboard(PlutoKeyManagerEvent event) {
     if (event.isKeyDownEvent && event.event.logicalKey.keyId == LogicalKeyboardKey.enter.keyId) {
-      if (canUpdate) {
-        callEditPage();
-      } else {
-        noPrivilegeMessage();
-      }
+      // if (canUpdate) {
+      //   callEditPage();
+      // } else {
+      //   noPrivilegeMessage();
+      // }
     }
-  } 
+  }
 
   Future delete() async {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
       showDeleteDialog(() async {
         if (await resumoRepository.delete(id: currentRow.cells['id']!.value)) {
-          _resumoModelList.removeWhere( ((t) => t.id == currentRow.cells['id']!.value) );
+          _resumoModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
@@ -188,44 +199,81 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   }
 
   Future<void> doSummary() async {
-    showQuestionDialog('Deseja processar o resumo?', () async {
-      // await extratoBancarioRepository.reconcileTransactions(filter).then((value) async {
-      //   await loadData();
-      // });
+    showQuestionDialog('Deseja processar o resumo? Os valores serão apagados!', () async {
+      await resumoRepository.doSummary(mesAno.padLeft(7, '0')).then((data) async {
+        await loadData();
+      });
+    });
+  }
+
+  Future<void> saveChanges() async {
+		List<ResumoModel> resumoList = [];
+
+		// Percorrer as linhas da PlutoGrid e converter para ResumoModel
+		for (var row in plutoGridStateManager.rows) {
+			final resumoModel = ResumoModel(
+				id: row.cells['id']!.value,
+				receitaDespesa: row.cells['receitaDespesa']!.value,
+				codigo: row.cells['codigo']!.value,
+				descricao: row.cells['descricao']!.value,
+				valorOrcado: row.cells['valorOrcado']!.value,
+				valorRealizado: row.cells['valorRealizado']!.value,
+				mesAno: mesAno.padLeft(7, '0'),
+			);
+
+			// Adicionar na lista para salvar depois
+			resumoList.add(resumoModel);
+		}
+
+		// Salvar todas as alterações no banco
+		await resumoRepository.saveAll(resumoList);
+
+    hasChanges.value = false;
+  }
+
+	Future<void> doCalculateValues() async {
+    showQuestionDialog('Deseja processar e calcular os valores do resumo?', () async {
+			await saveChanges();
+			final filter = Util.applyMonthYearToFilter(mesAno, Filter());
+      await resumoRepository.calculateSummarryForAMonth(mesAno.padLeft(7, '0'), filter).then((data) async {
+        await loadData();
+      });
+
+
+      // Recarregar os dados
+      // await loadData();
+
+      // Atualizar o saldo na tela
+      // saldo = (totalRealizadoReceitas - totalRealizadoDespesas);
     });
   }
 
   Future<void> calculateSummaryValues() async {
-    showQuestionDialog('Deseja calcular os valores do resumo?', () async {
-      // await extratoBancarioRepository.reconcileTransactions(filter).then((value) async {
-      //   await loadData();
-      // });
-    });
-  }
+	}
 
   // edit page
   final scrollController = ScrollController();
-	final codigoController = TextEditingController();
-	final descricaoController = TextEditingController();
-	final valorOrcadoController = MoneyMaskedTextController();
-	final valorRealizadoController = MoneyMaskedTextController();
-	final diferencaController = MoneyMaskedTextController();
+  final codigoController = TextEditingController();
+  final descricaoController = TextEditingController();
+  final valorOrcadoController = MoneyMaskedTextController();
+  final valorRealizadoController = MoneyMaskedTextController();
+  final diferencaController = MoneyMaskedTextController();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
 
   final _formWasChanged = false.obs;
   get formWasChanged => _formWasChanged.value;
-  set formWasChanged(value) => _formWasChanged.value = value; 
+  set formWasChanged(value) => _formWasChanged.value = value;
 
   void objectToPlutoRow() {
-		plutoRow.cells['id']?.value = resumoModel.id;
-		plutoRow.cells['receitaDespesa']?.value = resumoModel.receitaDespesa;
-		plutoRow.cells['codigo']?.value = resumoModel.codigo;
-		plutoRow.cells['descricao']?.value = resumoModel.descricao;
-		plutoRow.cells['valorOrcado']?.value = resumoModel.valorOrcado;
-		plutoRow.cells['valorRealizado']?.value = resumoModel.valorRealizado;
-		plutoRow.cells['diferenca']?.value = resumoModel.diferenca;
+    plutoRow.cells['id']?.value = resumoModel.id;
+    plutoRow.cells['receitaDespesa']?.value = resumoModel.receitaDespesa;
+    plutoRow.cells['codigo']?.value = resumoModel.codigo;
+    plutoRow.cells['descricao']?.value = resumoModel.descricao;
+    plutoRow.cells['valorOrcado']?.value = resumoModel.valorOrcado;
+    plutoRow.cells['valorRealizado']?.value = resumoModel.valorRealizado;
+    plutoRow.cells['diferenca']?.value = resumoModel.diferenca;
   }
 
   Future<void> save() async {
@@ -234,7 +282,7 @@ class ResumoController extends GetxController with ControllerBaseMixin {
       showErrorSnackBar(message: 'validator_form_message'.tr);
     } else {
       if (formWasChanged) {
-        final result = await resumoRepository.save(resumoModel: resumoModel); 
+        final result = await resumoRepository.save(resumoModel: resumoModel);
         if (result != null) {
           resumoModel = result;
           if (_isInserting) {
@@ -250,31 +298,13 @@ class ResumoController extends GetxController with ControllerBaseMixin {
     }
   }
 
-void calculateSumaryValues() {
-    double tempCreditos = 0.0;
-    double tempDebitos = 0.0;
-
-    for (var lancamento in _resumoModelList) {
-      lancamento.valorRealizado = lancamento.valorRealizado ?? 0;
-      if (lancamento.receitaDespesa == "R") {
-        tempCreditos += lancamento.valorRealizado ?? 0;
-      } else {
-        tempDebitos += lancamento.valorRealizado ?? 0;
-      }
-    }
-
-    // Atualiza os valores observáveis
-    saldo = tempCreditos - tempDebitos;
-  }
-
   void preventDataLoss() {
     if (formWasChanged) {
       showQuestionDialog('message_data_loss'.tr, () => Get.back());
     } else {
       Get.back();
     }
-  }  
-
+  }
 
   // override
   @override
@@ -282,20 +312,21 @@ void calculateSumaryValues() {
     bootstrapGridParameters(
       gutterSize: Constants.flutterBootstrapGutterSize,
     );
-		functionName = "resumo";
-    setPrivilege();		
+    functionName = "resumo";
+    setPrivilege();
+    mesAno = mesAno.isEmpty ? "${DateTime.now().month}/${DateTime.now().year}" : mesAno;
     super.onInit();
   }
 
   @override
   void onClose() {
-		codigoController.dispose();
-		descricaoController.dispose();
-		valorOrcadoController.dispose();
-		valorRealizadoController.dispose();
-		diferencaController.dispose();
+    codigoController.dispose();
+    descricaoController.dispose();
+    valorOrcadoController.dispose();
+    valorRealizadoController.dispose();
+    diferencaController.dispose();
     keyboardListener.cancel();
-    scrollController.dispose(); 
+    scrollController.dispose();
     super.onClose();
   }
 }

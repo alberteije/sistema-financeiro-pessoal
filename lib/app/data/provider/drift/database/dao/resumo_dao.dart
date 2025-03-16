@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:financeiro_pessoal/app/data/model/transient/filter.dart';
 import 'package:financeiro_pessoal/app/data/provider/drift/database/database.dart';
 import 'package:financeiro_pessoal/app/data/provider/drift/database/database_imports.dart';
 import 'package:financeiro_pessoal/app/page/shared_widget/message_dialog.dart';
@@ -117,14 +118,9 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
   }
 
   Future<void> doSummary(String selectedDate) async {
-    final parts = selectedDate.split('/');
-
-    final int month = int.tryParse(parts[0]) ?? 0;
-    final int year = int.tryParse(parts[1]) ?? 0;
-
     // Deletar registros existentes para o mes_ano especificado
     await (delete(resumos)
-          ..where((tbl) => tbl.mesAno.equals('$month/$year')))
+          ..where((tbl) => tbl.mesAno.equals(selectedDate)))
         .go();
 
     // Navegar pelas contas de receita
@@ -136,7 +132,7 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
         receitaDespesa: const Value('R'), // Indica que é receita
         codigo: Value(conta.codigo), // Código da conta de receita
         descricao: Value(conta.descricao), // Descrição da conta de receita
-        mesAno: Value('$month/$year'), // Adiciona o mes_ano
+        mesAno: Value(selectedDate), // Adiciona o mes_ano
       ));
     }
 
@@ -145,7 +141,7 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
       receitaDespesa: const Value('+'), // Sinal de total
       codigo: const Value(null), // Sem código
       descricao: const Value('TOTAL RECEITAS'), // Descrição do total
-      mesAno: Value('$month/$year'), // Adiciona o mes_ano
+      mesAno: Value(selectedDate), // Adiciona o mes_ano
     ));
 
     // Navegar pelas contas de despesa
@@ -157,7 +153,7 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
         receitaDespesa: const Value('D'), // Indica que é despesa
         codigo: Value(conta.codigo), // Código da conta de despesa
         descricao: Value(conta.descricao), // Descrição da conta de despesa
-        mesAno: Value('$month/$year'), // Adiciona o mes_ano
+        mesAno: Value(selectedDate), // Adiciona o mes_ano
       ));
     }
 
@@ -166,10 +162,38 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
       receitaDespesa: const Value('-'), // Sinal de total
       codigo: const Value(null), // Sem código
       descricao: const Value('TOTAL DESPESAS'), // Descrição do total
-      mesAno: Value('$month/$year'), // Adiciona o mes_ano
+      mesAno: Value(selectedDate), // Adiciona o mes_ano
     ));
 
     showInfoSnackBar(message: "Resumo atualizado com sucesso para o período $selectedDate!");
+  }
+
+  Future<void> calculateSummarryForAMonth(String selectedDate, Filter filter) async {
+    // Buscar todos os registros do resumo para o mês informado
+    final resumoList = await getListFilter('mes_ano', selectedDate);
+
+    for (final resumo in resumoList) {
+      double total = 0;
+
+      if (resumo.codigo != null) {
+        if (resumo.receitaDespesa == 'R') {
+          // Se for receita
+          total = await db.lancamentoReceitaDao.getTotalFromLancamentoReceita(resumo.codigo!, filter);
+        } else if (resumo.receitaDespesa == 'D') {
+          // Se for despesa
+          total = await db.lancamentoDespesaDao.getTotalFromLancamentoDespesa(resumo.codigo!, filter);
+        }
+
+        // Atualiza o valor realizado no resumo
+        await updateResumo(resumo.id!, total);
+      }
+    }
+  }
+
+  Future<void> updateResumo(int id, double valorRealizado) async {
+    await (update(resumos)..where((r) => r.id.equals(id))).write(
+      ResumosCompanion(valorRealizado: Value(valorRealizado)),
+    );
   }
 
 }

@@ -5,6 +5,7 @@ import 'package:financeiro_pessoal/app/data/domain/domain_imports.dart';
 
 class ResumoModel {
 	int? id;
+  String? mesAno;
 	String? receitaDespesa;
 	String? codigo;
 	String? descricao;
@@ -14,6 +15,7 @@ class ResumoModel {
 
 	ResumoModel({
 		this.id,
+    this.mesAno,
 		this.receitaDespesa,
 		this.codigo,
 		this.descricao,
@@ -24,6 +26,7 @@ class ResumoModel {
 
 	static List<String> dbColumns = <String>[
 		'id',
+    'mes_ano',
 		'receita_despesa',
 		'codigo',
 		'descricao',
@@ -34,6 +37,7 @@ class ResumoModel {
 	
 	static List<String> aliasColumns = <String>[
 		'Id',
+    'Mês/Ano'
 		'Receita Despesa',
 		'Codigo',
 		'Descricao',
@@ -44,6 +48,7 @@ class ResumoModel {
 
 	ResumoModel.fromJson(Map<String, dynamic> jsonData) {
 		id = jsonData['id'];
+    mesAno = jsonData['mesAno'];
 		receitaDespesa = ResumoDomain.getReceitaDespesa(jsonData['receitaDespesa']);
 		codigo = jsonData['codigo'];
 		descricao = jsonData['descricao'];
@@ -57,6 +62,7 @@ class ResumoModel {
 
 		jsonData['id'] = id != 0 ? id : null;
 		jsonData['receitaDespesa'] = ResumoDomain.setReceitaDespesa(receitaDespesa);
+    jsonData['mesAno'] = mesAno;
 		jsonData['codigo'] = codigo;
 		jsonData['descricao'] = descricao;
 		jsonData['valorOrcado'] = valorOrcado;
@@ -74,6 +80,7 @@ class ResumoModel {
 	plutoRowToObject(PlutoRow plutoRow) {
 		id = plutoRow.cells['id']?.value;
 		receitaDespesa = plutoRow.cells['receitaDespesa']?.value != '' ? plutoRow.cells['receitaDespesa']?.value : 'Receita';
+    mesAno = plutoRow.cells['mesAno']?.value;
 		codigo = plutoRow.cells['codigo']?.value;
 		descricao = plutoRow.cells['descricao']?.value;
 		valorOrcado = plutoRow.cells['valorOrcado']?.value?.toDouble();
@@ -84,6 +91,7 @@ class ResumoModel {
 	ResumoModel clone() {
 		return ResumoModel(
 			id: id,
+      mesAno: mesAno,
 			receitaDespesa: receitaDespesa,
 			codigo: codigo,
 			descricao: descricao,

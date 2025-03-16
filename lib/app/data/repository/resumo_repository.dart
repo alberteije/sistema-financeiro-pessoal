@@ -21,4 +21,17 @@ class ResumoRepository {
   Future<bool> delete({required int id}) async {
 		return await resumoDriftProvider.delete(id) ?? false;
 	}
+
+  Future doSummary(String selectedDate) async {
+    await resumoDriftProvider.doSummary(selectedDate);
+  }
+
+  Future saveAll(List<ResumoModel> resumoList) async {
+    await resumoDriftProvider.saveAll(resumoList);
+  }
+
+  Future calculateSummarryForAMonth(String selectedDate, Filter filter) async {
+    await resumoDriftProvider.calculateSummarryForAMonth(selectedDate, filter);
+  }
+
 }

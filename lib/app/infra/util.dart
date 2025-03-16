@@ -154,7 +154,7 @@ class Util {
   static Filter applyMonthYearToFilter(String monthYear, Filter filter) {
     final parts = monthYear.split('/');
     if (parts.length != 2) {
-      throw ArgumentError('Formato inválido. Use mm/aaaa.');
+      throw ArgumentError('Formato inválido. Use "mm/aaaa".');
     }
 
     final int month = int.parse(parts[0]); // Mês

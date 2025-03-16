@@ -177,4 +177,29 @@ class LancamentoReceitaDao extends DatabaseAccessor<AppDatabase> with _$Lancamen
       batch.insertAll(lancamentoReceitas, novosLancamentos);
     });
   }
+
+  Future<double> getTotalFromLancamentoReceita(String codigo, Filter filter) async {
+    final contaReceita = await (select(contaReceitas)
+          ..where((c) => c.codigo.equals(codigo)))
+        .getSingleOrNull();
+
+    if (contaReceita == null || filter.dateIni == null || filter.dateEnd == null) {
+      return 0.0;
+    }
+
+    final query = customSelect(
+      'SELECT SUM(valor) as total FROM lancamento_receita '
+      'WHERE id_conta_receita = ? '
+      'AND data_receita BETWEEN ? AND ?',
+      variables: [
+        Variable.withInt(contaReceita.id!),
+        Variable.withInt(filter.dateIni!.millisecondsSinceEpoch ~/ 1000), // O Dart usa milissegundos desde a epoch. O SQLite trabalha com segundos desde a epoch.
+        Variable.withInt(filter.dateEnd!.millisecondsSinceEpoch ~/ 1000),
+      ],
+      readsFrom: {lancamentoReceitas},
+    );
+
+    final result = await query.getSingleOrNull();
+    return result?.read<double?>('total') ?? 0.0;
+  }
 }
