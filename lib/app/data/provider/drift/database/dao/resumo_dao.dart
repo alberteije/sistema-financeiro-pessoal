@@ -172,28 +172,60 @@ class ResumoDao extends DatabaseAccessor<AppDatabase> with _$ResumoDaoMixin {
     // Buscar todos os registros do resumo para o mês informado
     final resumoList = await getListFilter('mes_ano', selectedDate);
 
+    // Map para armazenar totais agrupados
+    final Map<String, double> totais = {
+      'orcadoReceitas': 0,
+      'realizadoReceitas': 0,
+      'diferencaReceitas': 0,
+      'orcadoDespesas': 0,
+      'realizadoDespesas': 0,
+      'diferencaDespesas': 0,
+    };
+
     for (final resumo in resumoList) {
-      double total = 0;
+      if (resumo.codigo == null) continue;
 
-      if (resumo.codigo != null) {
-        if (resumo.receitaDespesa == 'R') {
-          // Se for receita
-          total = await db.lancamentoReceitaDao.getTotalFromLancamentoReceita(resumo.codigo!, filter);
-        } else if (resumo.receitaDespesa == 'D') {
-          // Se for despesa
-          total = await db.lancamentoDespesaDao.getTotalFromLancamentoDespesa(resumo.codigo!, filter);
-        }
+      double realizado = 0;
+      double diferenca = 0;
 
-        // Atualiza o valor realizado no resumo
-        await updateResumo(resumo.id!, total);
+      if (resumo.receitaDespesa == 'R') {
+        // Receita
+        realizado = await db.lancamentoReceitaDao.getTotalFromLancamentoReceita(resumo.codigo!, filter);
+        diferenca = realizado - (resumo.valorOrcado ?? 0);
+
+        totais['realizadoReceitas'] = (totais['realizadoReceitas'] ?? 0) + realizado;
+        totais['orcadoReceitas'] = (totais['orcadoReceitas'] ?? 0) + (resumo.valorOrcado ?? 0);
+        totais['diferencaReceitas'] = (totais['diferencaReceitas'] ?? 0) + diferenca;
+      } else if (resumo.receitaDespesa == 'D') {
+        // Despesa
+        realizado = await db.lancamentoDespesaDao.getTotalFromLancamentoDespesa(resumo.codigo!, filter);
+        diferenca = (resumo.valorOrcado ?? 0) - realizado;
+
+        totais['realizadoDespesas'] = (totais['realizadoDespesas'] ?? 0) + realizado;
+        totais['orcadoDespesas'] = (totais['orcadoDespesas'] ?? 0) + (resumo.valorOrcado ?? 0);
+        totais['diferencaDespesas'] = (totais['diferencaDespesas'] ?? 0) + diferenca;
+      }
+
+      // Atualiza lançamentos e/ou totais
+      if (resumo.receitaDespesa == 'R' || resumo.receitaDespesa == 'D') {
+        await updateResumo(resumo.id!, realizado, diferenca);
+      } else if (resumo.receitaDespesa == '+') {
+        await updateResumoTotal(resumo.id!, totais['orcadoReceitas']!, totais['realizadoReceitas']!, totais['diferencaReceitas']!);
+      } else if (resumo.receitaDespesa == '-') {
+        await updateResumoTotal(resumo.id!, totais['orcadoDespesas']!, totais['realizadoDespesas']!, totais['diferencaDespesas']!);
       }
     }
   }
 
-  Future<void> updateResumo(int id, double valorRealizado) async {
+  Future<void> updateResumo(int id, double valorRealizado, double diferenca) async {
     await (update(resumos)..where((r) => r.id.equals(id))).write(
-      ResumosCompanion(valorRealizado: Value(valorRealizado)),
+      ResumosCompanion(valorRealizado: Value(valorRealizado), diferenca: Value(diferenca)),
     );
   }
 
+  Future<void> updateResumoTotal(int id, double valorOrcado, double valorRealizado, double diferenca) async {
+    await (update(resumos)..where((r) => r.id.equals(id))).write(
+      ResumosCompanion(valorOrcado: Value(valorOrcado), valorRealizado: Value(valorRealizado), diferenca: Value(diferenca)),
+    );
+  }
 }

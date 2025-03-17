@@ -28,9 +28,23 @@ List<PlutoColumn> resumoGridColumns({bool isForLookup = false}) {
       enableSetColumnsMenuItem: false,
       enableHideColumnMenuItem: false,
       titleTextAlign: PlutoColumnTextAlign.center,
-      textAlign: PlutoColumnTextAlign.left,
+      textAlign: PlutoColumnTextAlign.center,
       width: 100,
       readOnly: true,
+      renderer: (rendererContext) {
+        final String valor = rendererContext.cell.value.toString();
+        return Container(
+          alignment: Alignment.center, // Garante que o conteúdo fique centralizado
+          child: Text(
+            valor,
+            textAlign: TextAlign.center, // Centraliza o texto dentro do widget
+            style: TextStyle(
+              fontWeight: valor == "+" || valor == "-" ? FontWeight.bold : FontWeight.normal,
+              fontSize: 14,
+            ),
+          ),
+        );
+      },
     ),
     PlutoColumn(
       title: "Código",
@@ -41,7 +55,7 @@ List<PlutoColumn> resumoGridColumns({bool isForLookup = false}) {
       enableSetColumnsMenuItem: false,
       enableHideColumnMenuItem: false,
       titleTextAlign: PlutoColumnTextAlign.center,
-      textAlign: PlutoColumnTextAlign.left,
+      textAlign: PlutoColumnTextAlign.center,
       width: 100,
       readOnly: true,
     ),

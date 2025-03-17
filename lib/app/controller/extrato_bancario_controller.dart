@@ -129,7 +129,7 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
     await Get.find<ExtratoBancarioController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
-    calculateSumaryValues();
+    calculateSummaryValues();
   }
 
   Future getList({Filter? filter}) async {
@@ -321,7 +321,7 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
     }
   }
 
-  void calculateSumaryValues() {
+  void calculateSummaryValues() {
     double tempCreditos = 0.0;
     double tempDebitos = 0.0;
     double tempSaldo = 0.0;

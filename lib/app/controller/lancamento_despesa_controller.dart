@@ -125,7 +125,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     await Get.find<LancamentoDespesaController>().getList(filter: filter);
     _plutoGridStateManager.appendRows(plutoRows());
     _plutoGridStateManager.setShowLoading(false);
-    calculateSumaryValues();
+    calculateSummaryValues();
   }
 
   Future getList({Filter? filter}) async {
@@ -192,7 +192,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
         if (await lancamentoDespesaRepository.delete(id: currentRow.cells['id']!.value)) {
           _lancamentoDespesaModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
-          calculateSumaryValues();
+          calculateSummaryValues();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
         }
@@ -258,7 +258,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
             _isInserting = false;
           }
           objectToPlutoRow();
-          calculateSumaryValues();
+          calculateSummaryValues();
           Get.back();
         }
       } else {
@@ -267,7 +267,7 @@ class LancamentoDespesaController extends GetxController with ControllerBaseMixi
     }
   }
 
-  void calculateSumaryValues() {
+  void calculateSummaryValues() {
     double tempAPagar = 0.0;
     double tempPago = 0.0;
     double tempTotal = 0.0;

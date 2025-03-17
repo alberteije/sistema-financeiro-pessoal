@@ -8,6 +8,10 @@ class ResumoDomain {
 				return 'Receita'; 
 			case 'D': 
 				return 'Despesa'; 
+			case '+': 
+				return '+'; 
+			case '-': 
+				return '-'; 
 			default: 
 				return null; 
 		} 
@@ -19,6 +23,10 @@ class ResumoDomain {
 				return 'R'; 
 			case 'Despesa': 
 				return 'D'; 
+			case '+': 
+				return '+'; 
+			case '-': 
+				return '-'; 
 			default: 
 				return null; 
 		} 

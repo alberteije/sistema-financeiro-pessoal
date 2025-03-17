@@ -239,16 +239,24 @@ class ResumoController extends GetxController with ControllerBaseMixin {
         await loadData();
       });
 
-
-      // Recarregar os dados
-      // await loadData();
-
-      // Atualizar o saldo na tela
-      // saldo = (totalRealizadoReceitas - totalRealizadoDespesas);
+			calculateSummaryValues();
     });
   }
 
-  Future<void> calculateSummaryValues() async {
+  void calculateSummaryValues() {
+		double tempReceitas = 0.0;
+    double tempDespesas = 0.0;
+
+    for (var lancamento in _resumoModelList) {
+      if (lancamento.descricao == "TOTAL RECEITAS") {
+        tempReceitas = lancamento.valorRealizado ?? 0;
+      } else if (lancamento.descricao == "TOTAL DESPESAS") {
+        tempDespesas += lancamento.valorRealizado ?? 0;
+      }
+    }
+
+    // Atualiza os valores observáveis
+    saldo = tempReceitas - tempDespesas;
 	}
 
   // edit page
