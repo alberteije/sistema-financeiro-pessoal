@@ -1,0 +1,26 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "financeiro_pessoal",
+			"request": "launch",
+			"type": "dart",
+			"args": [
+				"-d",
+				"chrome"
+			]
+		},
+		{
+			"name": "financeiro_pessoal (profile mode)",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "profile"
+		},
+		{
+			"name": "financeiro_pessoal (release mode)",
+			"request": "launch",
+			"type": "dart",
+			"flutterMode": "release"
+		}
+	]
+}

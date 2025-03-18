@@ -18,6 +18,13 @@ class ResumoListPage extends GetView<ResumoController> {
 				actions: [
 					// deleteButton(onPressed: controller.canDelete ? controller.delete : controller.noPrivilegeMessage),
           IconButton(
+            tooltip: 'Exibir Gráfico',
+            icon: const Icon(Icons.bar_chart),
+            color: Colors.blue,
+            onPressed: controller.showSummaryChart,
+          ),
+          const SizedBox(width: 10,),
+          IconButton(
             tooltip: 'Processar Resumo',
             icon: const Icon(Icons.attach_money_outlined),
             color: Colors.lime,
@@ -54,7 +61,7 @@ class ResumoListPage extends GetView<ResumoController> {
 				color: Colors.black26,
 				shape: const CircularNotchedRectangle(),
 				child: Row(children: [
-					printButton(onPressed: controller.printReport),
+					// printButton(onPressed: controller.printReport),
 					// filterButton(onPressed: controller.callFilter),
           MonthYearPicker(
             onChanged: (month, year) async {

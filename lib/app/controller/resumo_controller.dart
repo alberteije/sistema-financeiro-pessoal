@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:financeiro_pessoal/app/page/modules/resumo/summary_chart_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -43,7 +44,7 @@ class ResumoController extends GetxController with ControllerBaseMixin {
 
   var _isInserting = false;
 
-	final RxBool hasChanges = false.obs;
+  final RxBool hasChanges = false.obs;
 
   String mesAno = "";
 
@@ -52,7 +53,7 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   set saldo(double value) => _saldo.value = value;
 
   // list page
-	void markAsChanged() {
+  void markAsChanged() {
     hasChanges.value = true;
   }
 
@@ -207,44 +208,44 @@ class ResumoController extends GetxController with ControllerBaseMixin {
   }
 
   Future<void> saveChanges() async {
-		List<ResumoModel> resumoList = [];
+    List<ResumoModel> resumoList = [];
 
-		// Percorrer as linhas da PlutoGrid e converter para ResumoModel
-		for (var row in plutoGridStateManager.rows) {
-			final resumoModel = ResumoModel(
-				id: row.cells['id']!.value,
-				receitaDespesa: row.cells['receitaDespesa']!.value,
-				codigo: row.cells['codigo']!.value,
-				descricao: row.cells['descricao']!.value,
-				valorOrcado: row.cells['valorOrcado']!.value,
-				valorRealizado: row.cells['valorRealizado']!.value,
-				mesAno: mesAno.padLeft(7, '0'),
-			);
+    // Percorrer as linhas da PlutoGrid e converter para ResumoModel
+    for (var row in plutoGridStateManager.rows) {
+      final resumoModel = ResumoModel(
+        id: row.cells['id']!.value,
+        receitaDespesa: row.cells['receitaDespesa']!.value,
+        codigo: row.cells['codigo']!.value,
+        descricao: row.cells['descricao']!.value,
+        valorOrcado: row.cells['valorOrcado']!.value,
+        valorRealizado: row.cells['valorRealizado']!.value,
+        mesAno: mesAno.padLeft(7, '0'),
+      );
 
-			// Adicionar na lista para salvar depois
-			resumoList.add(resumoModel);
-		}
+      // Adicionar na lista para salvar depois
+      resumoList.add(resumoModel);
+    }
 
-		// Salvar todas as alterações no banco
-		await resumoRepository.saveAll(resumoList);
+    // Salvar todas as alterações no banco
+    await resumoRepository.saveAll(resumoList);
 
     hasChanges.value = false;
   }
 
-	Future<void> doCalculateValues() async {
+  Future<void> doCalculateValues() async {
     showQuestionDialog('Deseja processar e calcular os valores do resumo?', () async {
-			await saveChanges();
-			final filter = Util.applyMonthYearToFilter(mesAno, Filter());
+      await saveChanges();
+      final filter = Util.applyMonthYearToFilter(mesAno, Filter());
       await resumoRepository.calculateSummarryForAMonth(mesAno.padLeft(7, '0'), filter).then((data) async {
         await loadData();
       });
 
-			calculateSummaryValues();
+      calculateSummaryValues();
     });
   }
 
   void calculateSummaryValues() {
-		double tempReceitas = 0.0;
+    double tempReceitas = 0.0;
     double tempDespesas = 0.0;
 
     for (var lancamento in _resumoModelList) {
@@ -257,7 +258,13 @@ class ResumoController extends GetxController with ControllerBaseMixin {
 
     // Atualiza os valores observáveis
     saldo = tempReceitas - tempDespesas;
-	}
+  }
+
+  void showSummaryChart() {
+    Get.dialog(
+			SummaryChartDialog(resumoList: _resumoModelList),
+		);
+  }
 
   // edit page
   final scrollController = ScrollController();

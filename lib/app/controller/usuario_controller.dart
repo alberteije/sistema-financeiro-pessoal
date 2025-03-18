@@ -29,7 +29,7 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
   get aliasColumns => _aliasColumns;
 
   final gridColumns = usuarioGridColumns();
-  
+
   var _usuarioModelList = <UsuarioModel>[];
 
   final _usuarioModel = UsuarioModel().obs;
@@ -38,7 +38,7 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
 
   final _filter = Filter().obs;
   Filter get filter => _filter.value;
-  set filter(value) => _filter.value = value ?? Filter(); 
+  set filter(value) => _filter.value = value ?? Filter();
 
   var _isInserting = false;
 
@@ -69,16 +69,16 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
     );
   }
 
-  Map<String, PlutoCell> _getPlutoCells({ UsuarioModel? usuarioModel}) {
+  Map<String, PlutoCell> _getPlutoCells({UsuarioModel? usuarioModel}) {
     return {
-			"id": PlutoCell(value: usuarioModel?.id ?? 0),
-			"login": PlutoCell(value: usuarioModel?.login ?? ''),
-			"senha": PlutoCell(value: usuarioModel?.senha ?? ''),
+      "id": PlutoCell(value: usuarioModel?.id ?? 0),
+      "login": PlutoCell(value: usuarioModel?.login ?? ''),
+      "senha": PlutoCell(value: usuarioModel?.senha ?? ''),
     };
   }
 
   void plutoRowToObject() {
-    final modelFromRow = _usuarioModelList.where( ((t) => t.id == plutoRow.cells['id']!.value) ).toList();
+    final modelFromRow = _usuarioModelList.where(((t) => t.id == plutoRow.cells['id']!.value)).toList();
     if (modelFromRow.isEmpty) {
       usuarioModel.plutoRowToObject(plutoRow);
     } else {
@@ -107,7 +107,9 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
   }
 
   Future getList({Filter? filter}) async {
-    await usuarioRepository.getList(filter: filter).then( (data){ _usuarioModelList = data; } );
+    await usuarioRepository.getList(filter: filter).then((data) {
+      _usuarioModelList = data;
+    });
   }
 
   void printReport() {
@@ -123,8 +125,8 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
   void callEditPage() {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
-			loginController.text = currentRow.cells['login']?.value ?? '';
-			senhaController.text = currentRow.cells['senha']?.value ?? '';
+      loginController.text = currentRow.cells['login']?.value ?? '';
+      senhaController.text = currentRow.cells['senha']?.value ?? '';
 
       plutoRow = currentRow;
       formWasChanged = false;
@@ -140,12 +142,12 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
   }
 
   void callEditPageToInsert() {
-    _plutoGridStateManager.prependNewRows(); 
+    _plutoGridStateManager.prependNewRows();
     final cell = _plutoGridStateManager.rows.first.cells.entries.elementAt(0).value;
-    _plutoGridStateManager.setCurrentCell(cell, 0); 
+    _plutoGridStateManager.setCurrentCell(cell, 0);
     _isInserting = true;
     usuarioModel = UsuarioModel();
-    callEditPage();   
+    callEditPage();
   }
 
   void handleKeyboard(PlutoKeyManagerEvent event) {
@@ -156,14 +158,14 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
         noPrivilegeMessage();
       }
     }
-  } 
+  }
 
   Future delete() async {
     final currentRow = _plutoGridStateManager.currentRow;
     if (currentRow != null) {
       showDeleteDialog(() async {
         if (await usuarioRepository.delete(id: currentRow.cells['id']!.value)) {
-          _usuarioModelList.removeWhere( ((t) => t.id == currentRow.cells['id']!.value) );
+          _usuarioModelList.removeWhere(((t) => t.id == currentRow.cells['id']!.value));
           _plutoGridStateManager.removeCurrentRow();
         } else {
           showErrorSnackBar(message: 'message_error_delete'.tr);
@@ -174,23 +176,22 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
     }
   }
 
-
   // edit page
   final scrollController = ScrollController();
-	final loginController = TextEditingController();
-	final senhaController = TextEditingController();
+  final loginController = TextEditingController();
+  final senhaController = TextEditingController();
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
   final formKey = GlobalKey<FormState>();
 
   final _formWasChanged = false.obs;
   get formWasChanged => _formWasChanged.value;
-  set formWasChanged(value) => _formWasChanged.value = value; 
+  set formWasChanged(value) => _formWasChanged.value = value;
 
   void objectToPlutoRow() {
-		plutoRow.cells['id']?.value = usuarioModel.id;
-		plutoRow.cells['login']?.value = usuarioModel.login;
-		plutoRow.cells['senha']?.value = usuarioModel.senha;
+    plutoRow.cells['id']?.value = usuarioModel.id;
+    plutoRow.cells['login']?.value = usuarioModel.login;
+    plutoRow.cells['senha']?.value = usuarioModel.senha;
   }
 
   Future<void> save() async {
@@ -199,7 +200,7 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
       showErrorSnackBar(message: 'validator_form_message'.tr);
     } else {
       if (formWasChanged) {
-        final result = await usuarioRepository.save(usuarioModel: usuarioModel); 
+        final result = await usuarioRepository.save(usuarioModel: usuarioModel);
         if (result != null) {
           usuarioModel = result;
           if (_isInserting) {
@@ -215,14 +216,22 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
     }
   }
 
+  Future<bool> doLogin({required String user, required String password}) async {
+    return await usuarioRepository.doLogin(user, password);
+  }
+
+  Future<bool> hasUsersInDatabase () async {
+    final result = await usuarioRepository.getList();
+    return result.isNotEmpty;
+  }
+
   void preventDataLoss() {
     if (formWasChanged) {
       showQuestionDialog('message_data_loss'.tr, () => Get.back());
     } else {
       Get.back();
     }
-  }  
-
+  }
 
   // override
   @override
@@ -230,17 +239,17 @@ class UsuarioController extends GetxController with ControllerBaseMixin {
     bootstrapGridParameters(
       gutterSize: Constants.flutterBootstrapGutterSize,
     );
-		functionName = "usuario";
-    setPrivilege();		
+    functionName = "usuario";
+    setPrivilege();
     super.onInit();
   }
 
   @override
   void onClose() {
-		loginController.dispose();
-		senhaController.dispose();
+    loginController.dispose();
+    senhaController.dispose();
     keyboardListener.cancel();
-    scrollController.dispose(); 
+    scrollController.dispose();
     super.onClose();
   }
 }

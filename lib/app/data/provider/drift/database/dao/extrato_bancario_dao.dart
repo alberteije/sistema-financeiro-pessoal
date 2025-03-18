@@ -158,8 +158,6 @@ class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBan
       if (valor! > 0) {
         // Criar um lançamento de receita
         novasReceitas.add(LancamentoReceitasCompanion.insert(
-          // idContaReceita: const Value(1),
-          // idMetodoPagamento: const Value(1),
           dataReceita: Value(extrato.dataTransacao),
           valor: Value(valor),
           statusReceita: const Value("R"),
@@ -168,8 +166,6 @@ class ExtratoBancarioDao extends DatabaseAccessor<AppDatabase> with _$ExtratoBan
       } else {
         // Criar um lançamento de despesa
         novasDespesas.add(LancamentoDespesasCompanion.insert(
-          // idContaDespesa: const Value(1),
-          // idMetodoPagamento: const Value(1),
           dataDespesa: Value(extrato.dataTransacao),
           valor: Value(valor.abs()), // Transforma em positivo
           statusDespesa: const Value("P"),
