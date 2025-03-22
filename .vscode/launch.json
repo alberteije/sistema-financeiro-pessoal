@@ -4,11 +4,7 @@
 		{
 			"name": "financeiro_pessoal",
 			"request": "launch",
-			"type": "dart",
-			"args": [
-				"-d",
-				"chrome"
-			]
+			"type": "dart"
 		},
 		{
 			"name": "financeiro_pessoal (profile mode)",
