@@ -1,9 +1,11 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -11,6 +13,7 @@ import 'package:pluto_grid/pluto_grid.dart';
 import 'package:flutter_bootstrap/flutter_bootstrap.dart';
 import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:xml/xml.dart' as xml;
+// import 'dart:io' if (dart.library.html) 'dart:html' as html; // Para Web
 
 import 'package:financeiro_pessoal/app/infra/infra_imports.dart';
 import 'package:financeiro_pessoal/app/controller/controller_imports.dart';
@@ -211,11 +214,21 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
       try {
         FilePickerResult? result = await FilePicker.platform.pickFiles();
         if (result != null) {
-          File file = File(result.files.single.path!);
-          String arquivoOFX = await file.readAsString();
+          String arquivoOFX;
+
+          if (kIsWeb) {
+            // Flutter Web -> Lê o conteúdo a partir de `bytes`
+            Uint8List fileBytes = result.files.single.bytes!;
+            arquivoOFX = utf8.decode(fileBytes);
+          } else {
+            // Flutter Desktop -> Usa `path`
+            File file = File(result.files.single.path!);
+            arquivoOFX = await file.readAsString();
+          }
+
           final arquivoXML = xml.XmlDocument.parse(arquivoOFX);
 
-          // limpa a lista
+          // Limpa a lista
           _extratoBancarioModelList.clear();
 
           // Exclui os registros atuais do banco
@@ -232,7 +245,7 @@ class ExtratoBancarioController extends GetxController with ControllerBaseMixin 
 
             String mesAnoExtrato = "$mes/$ano";
             if (mesAno != mesAnoExtrato) {
-              showErrorSnackBar(message: "Existem lançamentos no extrato que estão fora do mês selacionado.");
+              showErrorSnackBar(message: "Existem lançamentos no extrato que estão fora do mês selecionado.");
               return;
             }
 

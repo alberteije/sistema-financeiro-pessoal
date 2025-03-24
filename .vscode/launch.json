@@ -4,7 +4,7 @@
 		{
 			"name": "financeiro_pessoal",
 			"request": "launch",
-			"type": "dart"
+      "type": "dart"
 		},
 		{
 			"name": "financeiro_pessoal (profile mode)",
